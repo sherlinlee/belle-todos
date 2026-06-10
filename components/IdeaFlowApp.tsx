@@ -8,6 +8,7 @@ import MicButton from "@/components/MicButton";
 import { type Idea, loadIdeas, saveIdeas } from "@/lib/ideas";
 import {
   hydrateFromCloud,
+  readLocalJournal,
   readLocalTodos,
   refreshFromCloud,
   scheduleCloudPush,
@@ -68,6 +69,7 @@ export default function IdeaFlowApp() {
     scheduleCloudPush(() => ({
       todos: readLocalTodos(),
       ideas,
+      journal: readLocalJournal(),
       updatedAt: Date.now(),
     }));
   }, [ideas, hydrated]);

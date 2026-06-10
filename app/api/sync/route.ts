@@ -4,6 +4,7 @@ import { isRequestAuthenticated } from "@/lib/server/request-auth";
 import { loadSyncData, saveSyncData } from "@/lib/server/store";
 import type { BelleSyncData } from "@/lib/sync-types";
 import type { Idea } from "@/lib/ideas";
+import type { JournalEntry } from "@/lib/journal";
 import type { Todo } from "@/lib/types";
 
 function isValidTodo(value: unknown): value is Todo {
@@ -22,6 +23,16 @@ function isValidIdea(value: unknown): value is Idea {
   return typeof idea.id === "string" && typeof idea.text === "string";
 }
 
+function isValidJournalEntry(value: unknown): value is JournalEntry {
+  if (!value || typeof value !== "object") return false;
+  const entry = value as JournalEntry;
+  return (
+    typeof entry.date === "string" &&
+    typeof entry.text === "string" &&
+    typeof entry.updatedAt === "number"
+  );
+}
+
 function parseBody(body: unknown): BelleSyncData | null {
   if (!body || typeof body !== "object") return null;
   const raw = body as Partial<BelleSyncData>;
@@ -30,10 +41,14 @@ function parseBody(body: unknown): BelleSyncData | null {
 
   const todos = raw.todos.filter(isValidTodo);
   const ideas = raw.ideas.filter(isValidIdea);
+  const journal = Array.isArray(raw.journal)
+    ? raw.journal.filter(isValidJournalEntry)
+    : [];
 
   return {
     todos,
     ideas,
+    journal,
     updatedAt: raw.updatedAt,
   };
 }

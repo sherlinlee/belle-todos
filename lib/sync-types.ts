@@ -1,9 +1,11 @@
 import type { Idea } from "@/lib/ideas";
+import type { JournalEntry } from "@/lib/journal";
 import type { Todo } from "@/lib/types";
 
 export type BelleSyncData = {
   todos: Todo[];
   ideas: Idea[];
+  journal: JournalEntry[];
   updatedAt: number;
 };
 

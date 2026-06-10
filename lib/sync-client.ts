@@ -1,4 +1,5 @@
 import type { Idea } from "@/lib/ideas";
+import { loadJournal, saveJournal, type JournalEntry } from "@/lib/journal";
 import { ensureEssentials } from "@/lib/essentials";
 import { migrateTodos } from "@/lib/migrate";
 import { hasUserContent, mergeSyncData } from "@/lib/sync-merge";
@@ -46,6 +47,14 @@ export function writeLocalIdeas(ideas: Idea[]) {
   localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
 }
 
+export function readLocalJournal(): JournalEntry[] {
+  return loadJournal();
+}
+
+export function writeLocalJournal(journal: JournalEntry[]) {
+  saveJournal(journal);
+}
+
 function readSyncMeta(): SyncMeta {
   try {
     const raw = localStorage.getItem(SYNC_META_KEY);
@@ -75,6 +84,7 @@ export async function fetchCloudSync(): Promise<BelleSyncData | null> {
     return {
       todos: ensureEssentials(migrateTodos(json.data.todos)),
       ideas: json.data.ideas,
+      journal: json.data.journal ?? [],
       updatedAt: json.data.updatedAt,
     };
   } catch {
@@ -101,6 +111,7 @@ export function buildLocalSnapshot(): BelleSyncData {
   return {
     todos: readLocalTodos(),
     ideas: readLocalIdeas(),
+    journal: readLocalJournal(),
     updatedAt: readSyncMeta().updatedAt,
   };
 }
@@ -108,6 +119,7 @@ export function buildLocalSnapshot(): BelleSyncData {
 export function applyCloudData(data: BelleSyncData) {
   writeLocalTodos(data.todos);
   writeLocalIdeas(data.ideas);
+  writeLocalJournal(data.journal ?? []);
   writeSyncMeta({ updatedAt: data.updatedAt });
 }
 
@@ -129,7 +141,8 @@ export async function hydrateFromCloud(): Promise<BelleSyncData> {
   const shouldPush =
     merged.updatedAt > cloud.updatedAt ||
     merged.ideas.length !== cloud.ideas.length ||
-    merged.todos.length !== cloud.todos.length;
+    merged.todos.length !== cloud.todos.length ||
+    merged.journal.length !== (cloud.journal ?? []).length;
 
   if (shouldPush) {
     const payload = { ...merged, updatedAt: Date.now() };

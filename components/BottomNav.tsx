@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/", label: "to-do(s)", emoji: "✿" },
-  { href: "/ideas", label: "idea flow", emoji: "💭" },
+  { href: "/ideas", label: "ideas", emoji: "💭" },
+  { href: "/journal", label: "journal", emoji: "📖" },
 ];
 
 export default function BottomNav() {
@@ -20,7 +21,7 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-2xl py-2.5 text-sm font-bold transition active:scale-[0.98] ${
+              className={`flex flex-1 items-center justify-center gap-1 rounded-2xl py-2.5 text-xs font-bold transition active:scale-[0.98] sm:gap-1.5 sm:text-sm ${
                 active
                   ? "bg-lavender text-foreground shadow-sm"
                   : "text-foreground/50 hover:text-foreground/70"

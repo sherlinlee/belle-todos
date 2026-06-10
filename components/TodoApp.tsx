@@ -26,6 +26,7 @@ import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import {
   hydrateFromCloud,
   readLocalIdeas,
+  readLocalJournal,
   refreshFromCloud,
   scheduleCloudPush,
   writeLocalTodos,
@@ -97,6 +98,7 @@ export default function TodoApp() {
     scheduleCloudPush(() => ({
       todos,
       ideas: readLocalIdeas(),
+      journal: readLocalJournal(),
       updatedAt: Date.now(),
     }));
   }, [todos, hydrated]);
