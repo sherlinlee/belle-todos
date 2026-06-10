@@ -299,20 +299,25 @@ export default function JournalApp() {
                 }`}
               />
               <div className="mt-2 flex items-center justify-between gap-2">
-                <div className="min-w-0 text-[10px] font-semibold text-foreground/35">
-                  {saveStatus === "saved" ? (
+                <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold text-foreground/35">
+                  {saveStatus === "saved" && (
                     <span>in your journal below ✿</span>
-                  ) : isWritingToday && !showDatePicker ? (
-                    <button
-                      type="button"
-                      onClick={openMissedDay}
-                      className="text-foreground/45 underline-offset-2 hover:text-foreground/60 hover:underline"
-                    >
-                      missed a day?
-                    </button>
-                  ) : (
-                    <span>one entry per day</span>
                   )}
+                  {isWritingToday && !showDatePicker && (
+                    <>
+                      {saveStatus === "saved" && (
+                        <span className="text-foreground/25">·</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={openMissedDay}
+                        className="text-foreground/45 underline-offset-2 hover:text-foreground/60 hover:underline"
+                      >
+                        missed a day?
+                      </button>
+                    </>
+                  )}
+                  {!isWritingToday && <span>one entry per day</span>}
                 </div>
                 <MicButton
                   onTranscript={appendTranscript}
