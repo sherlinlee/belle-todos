@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import BookAvatar from "@/components/BookAvatar";
 import BottomNav from "@/components/BottomNav";
+import JournalArchive from "@/components/JournalArchive";
+import MicButton from "@/components/MicButton";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import { todayString } from "@/lib/dates";
 import {
   entryForDate,
+  groupJournalArchive,
   loadJournal,
-  pastEntries,
+  savedJournalCount,
   saveJournal,
   upsertJournalEntry,
   type JournalEntry,
@@ -26,10 +29,14 @@ export default function JournalApp() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [today, setToday] = useState(todayString);
   const [hydrated, setHydrated] = useState(false);
-  const [showPast, setShowPast] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
 
   const verse = useMemo(() => verseForDate(today), [today]);
-  const previous = useMemo(() => pastEntries(entries, today), [entries, today]);
+  const archive = useMemo(
+    () => groupJournalArchive(entries, today),
+    [entries, today],
+  );
+  const totalSaved = useMemo(() => savedJournalCount(entries), [entries]);
 
   useEffect(() => {
     function refreshToday() {
@@ -46,6 +53,11 @@ export default function JournalApp() {
   }, []);
 
   const reflection = entryForDate(entries, today)?.text ?? "";
+  const displayReflection = liveTranscript
+    ? reflection
+      ? `${reflection} ${liveTranscript}`
+      : liveTranscript
+    : reflection;
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +105,23 @@ export default function JournalApp() {
 
   function updateReflection(text: string) {
     setEntries((prev) => upsertJournalEntry(prev, today, text));
+  }
+
+  function handleReflectionChange(text: string) {
+    setLiveTranscript("");
+    updateReflection(text);
+  }
+
+  function appendTranscript(chunk: string) {
+    setEntries((prev) => {
+      const current = entryForDate(prev, today)?.text ?? "";
+      return upsertJournalEntry(
+        prev,
+        today,
+        current ? `${current} ${chunk}` : chunk,
+      );
+    });
+    setLiveTranscript("");
   }
 
   return (
@@ -147,54 +176,31 @@ export default function JournalApp() {
               Loading…
             </p>
           ) : (
-            <textarea
-              id="journal-reflection"
-              value={reflection}
-              onChange={(e) => updateReflection(e.target.value)}
-              placeholder="what stood out to you today? prayers, gratitude, notes…"
-              rows={8}
-              className="paper-slip w-full resize-y rounded-xl border-2 border-accent-soft/60 px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15"
-            />
+            <>
+              <textarea
+                id="journal-reflection"
+                value={displayReflection}
+                onChange={(e) => handleReflectionChange(e.target.value)}
+                placeholder="what stood out to you today? prayers, gratitude, notes…"
+                rows={8}
+                className="paper-slip w-full resize-y rounded-xl border-2 border-accent-soft/60 px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15"
+              />
+              <div className="mt-2 flex items-center justify-end">
+                <MicButton
+                  onTranscript={appendTranscript}
+                  onInterim={setLiveTranscript}
+                  size="sm"
+                />
+              </div>
+            </>
           )}
-          <p className="mt-2 text-center text-[10px] font-semibold text-foreground/40">
-            saves automatically ✿
+          <p className="mt-2 text-center text-[10px] font-semibold leading-relaxed text-foreground/40">
+            one entry per day · saves automatically · kept forever in your cloud
+            log ✿
           </p>
         </section>
 
-        {previous.length > 0 && (
-          <section className="mt-3 rounded-[1.25rem] border border-white/80 bg-card/90 p-3 shadow-[0_12px_32px_var(--shadow)] backdrop-blur-sm sm:p-4">
-            <button
-              type="button"
-              onClick={() => setShowPast((open) => !open)}
-              className="flex w-full items-center justify-between gap-2 text-left"
-            >
-              <span className="text-xs font-bold uppercase tracking-wide text-foreground/55">
-                past reflections ({previous.length})
-              </span>
-              <span className="text-sm text-foreground/45">
-                {showPast ? "▾" : "▸"}
-              </span>
-            </button>
-
-            {showPast && (
-              <ul className="mt-3 space-y-2 border-t border-accent-soft/35 pt-3">
-                {previous.map((entry) => (
-                  <li
-                    key={entry.date}
-                    className="paper-slip rounded-xl border border-accent-soft/40 px-2.5 py-2"
-                  >
-                    <p className="text-[10px] font-bold text-accent">
-                      {formatJournalDate(entry.date)}
-                    </p>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/80">
-                      {entry.text}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
+        <JournalArchive archive={archive} totalSaved={totalSaved} />
       </main>
 
       <BottomNav />
