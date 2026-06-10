@@ -33,10 +33,7 @@ export default function JournalApp() {
   const [liveTranscript, setLiveTranscript] = useState("");
 
   const verse = useMemo(() => verseForDate(today), [today]);
-  const archive = useMemo(
-    () => groupJournalArchive(entries, today),
-    [entries, today],
-  );
+  const archive = useMemo(() => groupJournalArchive(entries), [entries]);
   const totalSaved = useMemo(() => savedJournalCount(entries), [entries]);
 
   useEffect(() => {
@@ -194,12 +191,15 @@ export default function JournalApp() {
             </>
           )}
           <p className="mt-2 text-center text-[10px] font-semibold leading-relaxed text-foreground/40">
-            one entry per day · saves automatically · kept forever in your cloud
-            log ✿
+            one entry per day · saves automatically ✿
           </p>
         </section>
 
-        <JournalArchive archive={archive} totalSaved={totalSaved} />
+        <JournalArchive
+          archive={archive}
+          totalSaved={totalSaved}
+          today={today}
+        />
       </main>
 
       <BottomNav />

@@ -85,14 +85,17 @@ export type JournalYearGroup = {
   months: JournalMonthGroup[];
 };
 
-export function groupJournalArchive(
-  entries: JournalEntry[],
-  today: string,
-): JournalYearGroup[] {
-  const past = pastEntries(entries, today);
+export function savedJournalEntries(entries: JournalEntry[]): JournalEntry[] {
+  return entries
+    .filter((entry) => entry.text.trim().length > 0)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function groupJournalArchive(entries: JournalEntry[]): JournalYearGroup[] {
+  const saved = savedJournalEntries(entries);
   const byMonth = new Map<string, JournalEntry[]>();
 
-  for (const entry of past) {
+  for (const entry of saved) {
     const [year, month] = entry.date.split("-");
     const key = `${year}-${month}`;
     const list = byMonth.get(key) ?? [];

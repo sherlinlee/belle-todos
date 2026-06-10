@@ -7,20 +7,25 @@ import { formatJournalDate } from "@/lib/verses";
 type JournalArchiveProps = {
   archive: JournalYearGroup[];
   totalSaved: number;
+  today: string;
 };
 
 export default function JournalArchive({
   archive,
   totalSaved,
+  today,
 }: JournalArchiveProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(totalSaved > 0);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => {
     const first = archive[0]?.year;
     return first ? new Set([first]) : new Set();
   });
-  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
-
-  if (archive.length === 0) return null;
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(() => {
+    const firstYear = archive[0];
+    const firstMonth = firstYear?.months[0];
+    if (!firstYear || !firstMonth) return new Set();
+    return new Set([`${firstYear.year}-${firstMonth.month}`]);
+  });
 
   function toggleYear(year: number) {
     setExpandedYears((prev) => {
@@ -49,92 +54,117 @@ export default function JournalArchive({
       >
         <div>
           <span className="block text-xs font-bold uppercase tracking-wide text-foreground/55">
-            journal archive
+            your journal
           </span>
           <span className="mt-0.5 block text-[10px] font-semibold text-foreground/40">
-            {totalSaved} {totalSaved === 1 ? "day" : "days"} saved · kept by month
-            &amp; year
+            {totalSaved > 0
+              ? `${totalSaved} ${totalSaved === 1 ? "day" : "days"} · browse by month & year`
+              : "past days show up here as you write"}
           </span>
         </div>
         <span className="text-sm text-foreground/45">{open ? "▾" : "▸"}</span>
       </button>
 
       {open && (
-        <div className="mt-3 space-y-2 border-t border-accent-soft/35 pt-3">
-          {archive.map(({ year, months }) => {
-            const yearOpen = expandedYears.has(year);
-            const monthCount = months.reduce(
-              (sum, group) => sum + group.entries.length,
-              0,
-            );
+        <div className="mt-3 border-t border-accent-soft/35 pt-3">
+          {archive.length === 0 ? (
+            <div className="rounded-xl bg-background/70 px-3 py-6 text-center">
+              <p className="text-sm font-semibold text-foreground/55">
+                nothing written yet
+              </p>
+              <p className="mt-1 text-xs text-foreground/40">
+                each day you reflect, it&apos;s saved here in the app
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {archive.map(({ year, months }) => {
+                const yearOpen = expandedYears.has(year);
+                const monthCount = months.reduce(
+                  (sum, group) => sum + group.entries.length,
+                  0,
+                );
 
-            return (
-              <div
-                key={year}
-                className="rounded-xl border border-accent-soft/35 bg-background/50"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleYear(year)}
-                  className="flex w-full items-center justify-between px-2.5 py-2 text-left"
-                >
-                  <span className="text-sm font-bold text-foreground/75">
-                    {year}
-                  </span>
-                  <span className="text-[10px] font-semibold text-foreground/45">
-                    {monthCount} {monthCount === 1 ? "entry" : "entries"}{" "}
-                    {yearOpen ? "▾" : "▸"}
-                  </span>
-                </button>
+                return (
+                  <div
+                    key={year}
+                    className="rounded-xl border border-accent-soft/35 bg-background/50"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleYear(year)}
+                      className="flex w-full items-center justify-between px-2.5 py-2 text-left"
+                    >
+                      <span className="text-sm font-bold text-foreground/75">
+                        {year}
+                      </span>
+                      <span className="text-[10px] font-semibold text-foreground/45">
+                        {monthCount} {monthCount === 1 ? "entry" : "entries"}{" "}
+                        {yearOpen ? "▾" : "▸"}
+                      </span>
+                    </button>
 
-                {yearOpen && (
-                  <div className="space-y-1.5 border-t border-accent-soft/25 px-2 pb-2 pt-1.5">
-                    {months.map((group) => {
-                      const monthKey = `${year}-${group.month}`;
-                      const monthOpen = expandedMonths.has(monthKey);
+                    {yearOpen && (
+                      <div className="space-y-1.5 border-t border-accent-soft/25 px-2 pb-2 pt-1.5">
+                        {months.map((group) => {
+                          const monthKey = `${year}-${group.month}`;
+                          const monthOpen = expandedMonths.has(monthKey);
 
-                      return (
-                        <div key={monthKey}>
-                          <button
-                            type="button"
-                            onClick={() => toggleMonth(monthKey)}
-                            className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-white/50"
-                          >
-                            <span className="text-xs font-bold text-accent">
-                              {group.label}
-                            </span>
-                            <span className="text-[10px] font-semibold text-foreground/40">
-                              {group.entries.length}{" "}
-                              {group.entries.length === 1 ? "day" : "days"}{" "}
-                              {monthOpen ? "▾" : "▸"}
-                            </span>
-                          </button>
+                          return (
+                            <div key={monthKey}>
+                              <button
+                                type="button"
+                                onClick={() => toggleMonth(monthKey)}
+                                className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-white/50"
+                              >
+                                <span className="text-xs font-bold text-foreground/60">
+                                  {group.label}
+                                </span>
+                                <span className="text-[10px] font-semibold text-foreground/40">
+                                  {group.entries.length}{" "}
+                                  {group.entries.length === 1 ? "day" : "days"}{" "}
+                                  {monthOpen ? "▾" : "▸"}
+                                </span>
+                              </button>
 
-                          {monthOpen && (
-                            <ul className="mt-1 space-y-1.5 pl-1">
-                              {group.entries.map((entry) => (
-                                <li
-                                  key={entry.date}
-                                  className="paper-slip rounded-xl border border-accent-soft/40 px-2.5 py-2"
-                                >
-                                  <p className="text-[10px] font-bold text-foreground/50">
-                                    {formatJournalDate(entry.date)}
-                                  </p>
-                                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/80">
-                                    {entry.text}
-                                  </p>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      );
-                    })}
+                              {monthOpen && (
+                                <ul className="mt-1 space-y-1.5 pl-1">
+                                  {group.entries.map((entry) => (
+                                    <li
+                                      key={entry.date}
+                                      className={`paper-slip rounded-xl border px-2.5 py-2 ${
+                                        entry.date === today
+                                          ? "border-accent-soft/70 bg-white/80"
+                                          : "border-accent-soft/40"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-[10px] font-bold text-foreground/50">
+                                          {formatJournalDate(entry.date)}
+                                        </p>
+                                        {entry.date === today && (
+                                          <span className="rounded-full bg-accent-soft/50 px-1.5 py-0.5 text-[9px] font-bold text-foreground/55">
+                                            today
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/80">
+                                        {entry.text}
+                                      </p>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </section>
