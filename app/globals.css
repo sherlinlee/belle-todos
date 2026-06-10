@@ -68,22 +68,9 @@ body {
   min-width: 2.75rem;
 }
 
-.todo-desktop-actions {
-  display: none;
-}
-
-.todo-mobile-actions {
-  display: flex;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .todo-desktop-actions {
-    display: flex;
-  }
-
-  .todo-mobile-actions {
-    display: none;
-  }
+.tap-pad {
+  margin: -0.375rem;
+  padding: 0.375rem;
 }
 
 .paper-slip {
