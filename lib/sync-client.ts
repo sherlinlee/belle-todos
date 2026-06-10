@@ -1,6 +1,7 @@
 import type { Idea } from "@/lib/ideas";
 import { ensureEssentials } from "@/lib/essentials";
 import { migrateTodos } from "@/lib/migrate";
+import { hasUserContent, mergeSyncData } from "@/lib/sync-merge";
 import {
   type BelleSyncData,
   SYNC_META_KEY,
@@ -115,30 +116,44 @@ export async function hydrateFromCloud(): Promise<BelleSyncData> {
   const cloud = await fetchCloudSync();
 
   if (!cloud) {
-    const hasLocal =
-      local.todos.length > 0 ||
-      local.ideas.length > 0 ||
-      local.updatedAt > 0;
-    if (hasLocal) {
-      const merged = { ...local, updatedAt: Date.now() };
-      applyCloudData(merged);
-      await pushCloudSync(merged);
-      return merged;
+    if (hasUserContent(local)) {
+      const seed = { ...local, updatedAt: Date.now() };
+      void pushCloudSync(seed);
     }
     return local;
   }
 
-  if (cloud.updatedAt >= local.updatedAt) {
-    applyCloudData(cloud);
-    return cloud;
+  const merged = mergeSyncData(local, cloud);
+  applyCloudData(merged);
+
+  const shouldPush =
+    merged.updatedAt > cloud.updatedAt ||
+    merged.ideas.length !== cloud.ideas.length ||
+    merged.todos.length !== cloud.todos.length;
+
+  if (shouldPush) {
+    const payload = { ...merged, updatedAt: Date.now() };
+    applyCloudData(payload);
+    await pushCloudSync(payload);
   }
 
-  const merged: BelleSyncData = {
-    ...local,
-    updatedAt: Date.now(),
-  };
+  return merged;
+}
+
+export async function refreshFromCloud(): Promise<BelleSyncData | null> {
+  const local = buildLocalSnapshot();
+  const cloud = await fetchCloudSync();
+  if (!cloud) return null;
+
+  const merged = mergeSyncData(local, cloud);
   applyCloudData(merged);
-  await pushCloudSync(merged);
+
+  if (merged.updatedAt > cloud.updatedAt) {
+    const payload = { ...merged, updatedAt: Date.now() };
+    applyCloudData(payload);
+    await pushCloudSync(payload);
+  }
+
   return merged;
 }
 
@@ -149,7 +164,6 @@ export function scheduleCloudPush(getData: () => BelleSyncData) {
   pushTimer = setTimeout(() => {
     const snapshot = getData();
     const payload = { ...snapshot, updatedAt: Date.now() };
-    writeSyncMeta({ updatedAt: payload.updatedAt });
     void pushCloudSync(payload);
   }, 700);
 }

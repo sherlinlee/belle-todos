@@ -22,9 +22,11 @@ import {
   uncompletePermanentTodo,
 } from "@/lib/essentials";
 import { migrateTodos, reorderTodos, sortByOrder } from "@/lib/migrate";
+import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import {
   hydrateFromCloud,
   readLocalIdeas,
+  refreshFromCloud,
   scheduleCloudPush,
   writeLocalTodos,
 } from "@/lib/sync-client";
@@ -79,6 +81,15 @@ export default function TodoApp() {
       cancelled = true;
     };
   }, []);
+
+  const onCloudRefresh = useCallback(
+    (data: Awaited<ReturnType<typeof refreshFromCloud>>) => {
+      if (data) setTodos(data.todos);
+    },
+    [],
+  );
+
+  useCloudRefresh(onCloudRefresh);
 
   useEffect(() => {
     if (!hydrated) return;

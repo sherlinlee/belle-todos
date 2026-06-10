@@ -1,23 +1,15 @@
-import { head, put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 import type { BelleSyncData } from "@/lib/sync-types";
 
 const BLOB_PATHNAME = "belle-sync.json";
 
-function authHeaders(): HeadersInit | undefined {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) return undefined;
-  return { authorization: `Bearer ${token}` };
-}
-
 export async function loadSyncData(): Promise<BelleSyncData | null> {
   try {
-    const meta = await head(BLOB_PATHNAME);
-    const res = await fetch(meta.url, {
-      headers: authHeaders(),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as BelleSyncData;
+    const result = await get(BLOB_PATHNAME, { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+
+    const text = await new Response(result.stream).text();
+    return JSON.parse(text) as BelleSyncData;
   } catch {
     return null;
   }

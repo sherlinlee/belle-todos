@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import BelleAvatar from "@/components/BelleAvatar";
 import BottomNav from "@/components/BottomNav";
 import MicButton from "@/components/MicButton";
@@ -8,6 +9,7 @@ import { type Idea, loadIdeas, saveIdeas } from "@/lib/ideas";
 import {
   hydrateFromCloud,
   readLocalTodos,
+  refreshFromCloud,
   scheduleCloudPush,
 } from "@/lib/sync-client";
 
@@ -50,6 +52,15 @@ export default function IdeaFlowApp() {
       cancelled = true;
     };
   }, []);
+
+  const onCloudRefresh = useCallback(
+    (data: Awaited<ReturnType<typeof refreshFromCloud>>) => {
+      if (data) setIdeas(data.ideas);
+    },
+    [],
+  );
+
+  useCloudRefresh(onCloudRefresh);
 
   useEffect(() => {
     if (!hydrated) return;
