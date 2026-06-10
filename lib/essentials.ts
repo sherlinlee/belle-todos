@@ -81,6 +81,22 @@ export function uncompletePermanentTodo(todo: Todo): Todo {
   };
 }
 
+export function pendingEssentials(todos: Todo[]): Todo[] {
+  return todos
+    .filter(isPermanentTodo)
+    .filter((todo) => !todo.completed)
+    .sort((a, b) => a.order - b.order);
+}
+
+export function allEssentialsDoneToday(todos: Todo[]): boolean {
+  const essentials = todos.filter(isPermanentTodo);
+  return essentials.length > 0 && essentials.every((todo) => todo.completed);
+}
+
+export function isRegularTodo(todo: Todo) {
+  return !isPermanentTodo(todo);
+}
+
 export function visibleEssentials(
   todos: Todo[],
   statusFilter: "all" | "active" | "completed",

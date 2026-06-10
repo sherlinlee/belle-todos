@@ -5,6 +5,11 @@ import BelleAvatar from "@/components/BelleAvatar";
 import BottomNav from "@/components/BottomNav";
 import MicButton from "@/components/MicButton";
 import { type Idea, loadIdeas, saveIdeas } from "@/lib/ideas";
+import {
+  hydrateFromCloud,
+  readLocalTodos,
+  scheduleCloudPush,
+} from "@/lib/sync-client";
 
 function createId() {
   return crypto.randomUUID();
@@ -23,13 +28,37 @@ export default function IdeaFlowApp() {
     : input;
 
   useEffect(() => {
-    setIdeas(loadIdeas());
-    setHydrated(true);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await hydrateFromCloud();
+        if (!cancelled) {
+          setIdeas(data.ideas);
+        }
+      } catch {
+        if (!cancelled) {
+          setIdeas(loadIdeas());
+        }
+      } finally {
+        if (!cancelled) setHydrated(true);
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
     saveIdeas(ideas);
+    scheduleCloudPush(() => ({
+      todos: readLocalTodos(),
+      ideas,
+      updatedAt: Date.now(),
+    }));
   }, [ideas, hydrated]);
 
   function addIdea(e?: React.FormEvent) {

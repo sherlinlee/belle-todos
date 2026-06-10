@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AddTodoForm from "@/components/AddTodoForm";
 import CelebrationToast from "@/components/CelebrationToast";
 import ConfettiBurst from "@/components/ConfettiBurst";
-import EssentialCard from "@/components/EssentialCard";
+import EssentialsStrip from "@/components/EssentialsStrip";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
 import BelleAvatar from "@/components/BelleAvatar";
@@ -13,21 +13,27 @@ import WeatherForecast from "@/components/WeatherForecast";
 import { CATEGORIES } from "@/lib/categories";
 import { allDoneEncouragement, pickEncouragement } from "@/lib/encouragements";
 import {
+  allEssentialsDoneToday,
   completePermanentTodo,
   ensureEssentials,
   isPermanentTodo,
+  isRegularTodo,
+  pendingEssentials,
   uncompletePermanentTodo,
-  visibleEssentials,
 } from "@/lib/essentials";
 import { migrateTodos, reorderTodos, sortByOrder } from "@/lib/migrate";
+import {
+  hydrateFromCloud,
+  readLocalIdeas,
+  scheduleCloudPush,
+  writeLocalTodos,
+} from "@/lib/sync-client";
 import type {
   Category,
   CategoryFilter,
   StatusFilter,
   Todo,
 } from "@/lib/types";
-
-const STORAGE_KEY = "to-dos-items-v2";
 
 function createId() {
   return crypto.randomUUID();
@@ -51,36 +57,58 @@ export default function TodoApp() {
   const [celebration, setCelebration] = useState<Celebration | null>(null);
 
   useEffect(() => {
-    try {
-      const saved =
-        localStorage.getItem(STORAGE_KEY) ??
-        localStorage.getItem("to-dos-items");
-      if (saved) {
-        setTodos(ensureEssentials(migrateTodos(JSON.parse(saved))));
-      } else {
-        setTodos(ensureEssentials([]));
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await hydrateFromCloud();
+        if (!cancelled) {
+          setTodos(data.todos);
+        }
+      } catch {
+        if (!cancelled) {
+          setTodos(ensureEssentials([]));
+        }
+      } finally {
+        if (!cancelled) setHydrated(true);
       }
-    } catch {
-      setTodos(ensureEssentials([]));
     }
-    setHydrated(true);
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    writeLocalTodos(todos);
+    scheduleCloudPush(() => ({
+      todos,
+      ideas: readLocalIdeas(),
+      updatedAt: Date.now(),
+    }));
   }, [todos, hydrated]);
 
   const sortedTodos = useMemo(() => sortByOrder(todos), [todos]);
 
-  const essentialTodos = useMemo(
-    () => visibleEssentials(sortedTodos, statusFilter),
-    [sortedTodos, statusFilter],
+  const pendingRituals = useMemo(
+    () => pendingEssentials(sortedTodos),
+    [sortedTodos],
+  );
+
+  const ritualsDone = useMemo(
+    () => allEssentialsDoneToday(sortedTodos),
+    [sortedTodos],
+  );
+
+  const regularTodos = useMemo(
+    () => sortedTodos.filter(isRegularTodo),
+    [sortedTodos],
   );
 
   const filteredTodos = useMemo(() => {
-    return sortedTodos.filter((todo) => {
-      if (isPermanentTodo(todo)) return false;
+    return regularTodos.filter((todo) => {
       if (categoryFilter !== "all" && todo.category !== categoryFilter) {
         return false;
       }
@@ -88,12 +116,17 @@ export default function TodoApp() {
       if (statusFilter === "completed") return todo.completed;
       return true;
     });
-  }, [sortedTodos, statusFilter, categoryFilter]);
+  }, [regularTodos, statusFilter, categoryFilter]);
 
-  const activeCount = todos.filter((t) => !t.completed).length;
-  const completedCount = todos.length - activeCount;
+  const activeCount = regularTodos.filter((t) => !t.completed).length;
+  const completedCount = regularTodos.filter((t) => t.completed).length;
+  const ritualCount = pendingRituals.length;
 
   const dismissCelebration = useCallback(() => setCelebration(null), []);
+
+  function remainingRegularCount(list: Todo[]) {
+    return list.filter(isRegularTodo).filter((t) => !t.completed).length;
+  }
 
   function celebrate(wasLastOne: boolean) {
     const picked = wasLastOne ? allDoneEncouragement() : pickEncouragement();
@@ -142,14 +175,11 @@ export default function TodoApp() {
 
       setCompletingId(id);
       window.setTimeout(() => {
-        setTodos((prev) => {
-          const next = prev.map((t) =>
+        setTodos((prev) =>
+          prev.map((t) =>
             t.id === id ? completePermanentTodo(t) : t,
-          );
-          const remaining = next.filter((t) => !t.completed).length;
-          celebrate(remaining === 0);
-          return next;
-        });
+          ),
+        );
         setCompletingId(null);
       }, 420);
       return;
@@ -168,7 +198,7 @@ export default function TodoApp() {
         const next = prev.map((t) =>
           t.id === id ? { ...t, completed: true } : t,
         );
-        const remaining = next.filter((t) => !t.completed).length;
+        const remaining = remainingRegularCount(next);
         celebrate(remaining === 0);
         return next;
       });
@@ -205,7 +235,7 @@ export default function TodoApp() {
     [
       { key: "active", label: "Active", count: activeCount },
       { key: "completed", label: "Done", count: completedCount },
-      { key: "all", label: "All", count: todos.length },
+      { key: "all", label: "All", count: regularTodos.length },
     ];
 
   return (
@@ -240,15 +270,30 @@ export default function TodoApp() {
             <BelleAvatar size={34} />
           </p>
 
-          <div className="mt-4 inline-flex max-w-full items-center gap-2.5 rounded-full border-2 border-accent-soft/50 bg-card/80 px-3.5 py-2 shadow-sm backdrop-blur-sm sm:mt-5 sm:gap-3 sm:px-4">
-            <span className="animate-bear-bob text-2xl" aria-hidden>
-              🐻
-            </span>
-            <p className="text-xs font-semibold text-foreground/75 sm:text-sm">
-              {activeCount === 0
-                ? "All tucked into their boxes!"
-                : `${activeCount} bit${activeCount === 1 ? "" : "s"} left`}
-            </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:mt-5">
+            <div className="inline-flex max-w-full items-center gap-2.5 rounded-full border-2 border-accent-soft/50 bg-card/80 px-3.5 py-2 shadow-sm backdrop-blur-sm sm:gap-3 sm:px-4">
+              <span className="animate-bear-bob text-2xl" aria-hidden>
+                🐻
+              </span>
+              <p className="text-xs font-semibold text-foreground/75 sm:text-sm">
+                {activeCount === 0
+                  ? "All tucked into their boxes!"
+                  : `${activeCount} bit${activeCount === 1 ? "" : "s"} left`}
+              </p>
+            </div>
+
+            {ritualCount > 0 && (
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent-soft/40 bg-background/80 px-3 py-1.5 text-[11px] font-semibold text-foreground/55">
+                <span aria-hidden>✿</span>
+                {ritualCount} ritual{ritualCount === 1 ? "" : "s"}
+              </div>
+            )}
+
+            {ritualsDone && ritualCount === 0 && (
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent-soft/30 bg-background/60 px-3 py-1.5 text-[11px] font-semibold text-foreground/45">
+                rituals done ✓
+              </div>
+            )}
           </div>
         </header>
 
@@ -317,27 +362,9 @@ export default function TodoApp() {
             ))}
           </div>
 
-          {hydrated && essentialTodos.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-accent">
-                ✿ daily essentials ✿
-              </p>
-              <div className="space-y-2">
-                {essentialTodos.map((todo) => (
-                  <EssentialCard
-                    key={todo.id}
-                    todo={todo}
-                    isCompleting={completingId === todo.id}
-                    onToggle={toggleTodo}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
           {!hydrated ? (
             <p className="py-10 text-center text-foreground/50">Loading…</p>
-          ) : filteredTodos.length === 0 && essentialTodos.length === 0 ? (
+          ) : filteredTodos.length === 0 ? (
             <div className="rounded-2xl bg-background/70 px-3 py-10 text-center sm:px-4 sm:py-12">
               <p className="animate-float-gentle text-3xl">🌷</p>
               <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">
@@ -357,6 +384,16 @@ export default function TodoApp() {
               onUpdate={updateTodo}
               onReorder={handleReorder}
             />
+          )}
+
+          {hydrated && pendingRituals.length > 0 && (
+            <div className="mt-4 border-t border-accent-soft/30 pt-3">
+              <EssentialsStrip
+                todos={pendingRituals}
+                completingId={completingId}
+                onToggle={toggleTodo}
+              />
+            </div>
           )}
 
           {completedCount > 0 && (
