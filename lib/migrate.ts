@@ -34,8 +34,23 @@ export function sortByOrder(todos: Todo[]) {
   return [...todos].sort((a, b) => a.order - b.order);
 }
 
+export function sortByDueDate(todos: Todo[]) {
+  return [...todos].sort((a, b) => {
+    if (a.dueDate && b.dueDate) {
+      const byDate = a.dueDate.localeCompare(b.dueDate);
+      if (byDate !== 0) return byDate;
+    } else if (a.dueDate) {
+      return -1;
+    } else if (b.dueDate) {
+      return 1;
+    }
+
+    return a.order - b.order;
+  });
+}
+
 export function reorderTodos(todos: Todo[], activeId: string, overId: string) {
-  const sorted = sortByOrder(todos);
+  const sorted = sortByDueDate(todos);
   const oldIndex = sorted.findIndex((t) => t.id === activeId);
   const newIndex = sorted.findIndex((t) => t.id === overId);
   if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return todos;

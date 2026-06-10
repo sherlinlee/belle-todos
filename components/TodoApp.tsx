@@ -21,7 +21,7 @@ import {
   pendingEssentials,
   uncompletePermanentTodo,
 } from "@/lib/essentials";
-import { migrateTodos, reorderTodos, sortByOrder } from "@/lib/migrate";
+import { migrateTodos, reorderTodos, sortByDueDate } from "@/lib/migrate";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import {
   hydrateFromCloud,
@@ -101,7 +101,7 @@ export default function TodoApp() {
     }));
   }, [todos, hydrated]);
 
-  const sortedTodos = useMemo(() => sortByOrder(todos), [todos]);
+  const sortedTodos = useMemo(() => sortByDueDate(todos), [todos]);
 
   const pendingRituals = useMemo(
     () => pendingEssentials(sortedTodos),
@@ -152,9 +152,10 @@ export default function TodoApp() {
     const text = input.trim();
     if (!text) return;
 
-    const minOrder = todos.reduce((min, t) => Math.min(min, t.order), 0);
+    const maxOrder = todos.reduce((max, t) => Math.max(max, t.order), -1);
 
     setTodos((prev) => [
+      ...prev,
       {
         id: createId(),
         text,
@@ -162,9 +163,8 @@ export default function TodoApp() {
         createdAt: Date.now(),
         dueDate: dueDate || null,
         category,
-        order: minOrder - 1,
+        order: maxOrder + 1,
       },
-      ...prev,
     ]);
     setInput("");
     setDueDate("");
