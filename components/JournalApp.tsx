@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BelleAvatar from "@/components/BelleAvatar";
 import BottomNav from "@/components/BottomNav";
 import CrossIcon from "@/components/CrossIcon";
@@ -26,11 +26,15 @@ import {
 } from "@/lib/sync-client";
 import { formatJournalDate, verseForDate } from "@/lib/verses";
 
+type SaveStatus = "idle" | "saving" | "saved";
+
 export default function JournalApp() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [today, setToday] = useState(todayString);
   const [hydrated, setHydrated] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const skipSaveIndicator = useRef(true);
 
   const verse = useMemo(() => verseForDate(today), [today]);
   const archive = useMemo(() => groupJournalArchive(entries), [entries]);
@@ -99,7 +103,27 @@ export default function JournalApp() {
       journal: entries,
       updatedAt: Date.now(),
     }));
-  }, [entries, hydrated]);
+
+    if (skipSaveIndicator.current) {
+      skipSaveIndicator.current = false;
+      const existing = entryForDate(entries, today)?.text?.trim() ?? "";
+      setSaveStatus(existing ? "saved" : "idle");
+      return;
+    }
+
+    setSaveStatus("saving");
+    const timer = window.setTimeout(() => {
+      const hasText = (entryForDate(entries, today)?.text ?? "").trim().length > 0;
+      setSaveStatus(hasText ? "saved" : "idle");
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [entries, hydrated, today]);
+
+  function markSaving() {
+    if (liveTranscript) return;
+    setSaveStatus("saving");
+  }
 
   function updateReflection(text: string) {
     setEntries((prev) => upsertJournalEntry(prev, today, text));
@@ -107,10 +131,12 @@ export default function JournalApp() {
 
   function handleReflectionChange(text: string) {
     setLiveTranscript("");
+    markSaving();
     updateReflection(text);
   }
 
   function appendTranscript(chunk: string) {
+    markSaving();
     setEntries((prev) => {
       const current = entryForDate(prev, today)?.text ?? "";
       return upsertJournalEntry(
@@ -161,12 +187,29 @@ export default function JournalApp() {
         </section>
 
         <section className="rounded-[1.25rem] border border-white/80 bg-card/90 p-3 shadow-[0_16px_40px_var(--shadow)] backdrop-blur-sm sm:p-4">
-          <label
-            htmlFor="journal-reflection"
-            className="mb-2 block text-xs font-bold uppercase tracking-wide text-foreground/55"
-          >
-            today&apos;s reflection
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <label
+              htmlFor="journal-reflection"
+              className="text-xs font-bold uppercase tracking-wide text-foreground/55"
+            >
+              today&apos;s reflection
+            </label>
+            {hydrated && liveTranscript && (
+              <span className="text-[10px] font-semibold text-accent animate-pulse">
+                listening…
+              </span>
+            )}
+            {hydrated && !liveTranscript && saveStatus === "saving" && (
+              <span className="text-[10px] font-semibold text-foreground/45">
+                saving…
+              </span>
+            )}
+            {hydrated && !liveTranscript && saveStatus === "saved" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-mint/45 px-2 py-0.5 text-[10px] font-bold text-forest">
+                saved ✓
+              </span>
+            )}
+          </div>
           {!hydrated ? (
             <p className="py-8 text-center text-sm text-foreground/45">
               Loading…
@@ -179,9 +222,18 @@ export default function JournalApp() {
                 onChange={(e) => handleReflectionChange(e.target.value)}
                 placeholder="what stood out to you today? prayers, gratitude, notes…"
                 rows={8}
-                className="paper-slip w-full resize-y rounded-xl border-2 border-accent-soft/60 px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15"
+                className={`paper-slip w-full resize-y rounded-xl border-2 px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15 ${
+                  saveStatus === "saved" && !liveTranscript
+                    ? "border-forest/35 ring-1 ring-mint/30"
+                    : "border-accent-soft/60"
+                }`}
               />
-              <div className="mt-2 flex items-center justify-end">
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold text-foreground/35">
+                  {saveStatus === "saved"
+                    ? "in your journal below ✿"
+                    : "one entry per day"}
+                </p>
                 <MicButton
                   onTranscript={appendTranscript}
                   onInterim={setLiveTranscript}
@@ -190,9 +242,6 @@ export default function JournalApp() {
               </div>
             </>
           )}
-          <p className="mt-2 text-center text-[10px] font-semibold leading-relaxed text-foreground/40">
-            one entry per day · saves automatically ✿
-          </p>
         </section>
 
         <JournalArchive
