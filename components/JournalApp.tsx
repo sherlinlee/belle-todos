@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import BelleAvatar from "@/components/BelleAvatar";
 import BookAvatar from "@/components/BookAvatar";
 import BottomNav from "@/components/BottomNav";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
@@ -26,7 +25,6 @@ import { formatJournalDate, verseForDate } from "@/lib/verses";
 export default function JournalApp() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [today, setToday] = useState(todayString);
-  const [reflection, setReflection] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [showPast, setShowPast] = useState(false);
 
@@ -47,10 +45,7 @@ export default function JournalApp() {
     };
   }, []);
 
-  useEffect(() => {
-    const entry = entryForDate(entries, today);
-    setReflection(entry?.text ?? "");
-  }, [entries, today]);
+  const reflection = entryForDate(entries, today)?.text ?? "";
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +92,6 @@ export default function JournalApp() {
   }, [entries, hydrated]);
 
   function updateReflection(text: string) {
-    setReflection(text);
     setEntries((prev) => upsertJournalEntry(prev, today, text));
   }
 
@@ -114,12 +108,11 @@ export default function JournalApp() {
             ✿ pause + breathe ✿
           </p>
           <h1 className="text-[1.75rem] font-extrabold leading-tight text-foreground sm:text-4xl">
-            journal + reflection
+            journal
           </h1>
           <p className="mt-1.5 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-foreground/70">
-            <BookAvatar size={24} />
+            <BookAvatar size={22} tone="muted" />
             <span>{formatJournalDate(today)}</span>
-            <BelleAvatar size={28} />
           </p>
         </header>
 

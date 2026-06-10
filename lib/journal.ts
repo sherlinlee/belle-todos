@@ -32,17 +32,16 @@ export function upsertJournalEntry(
   date: string,
   text: string,
 ): JournalEntry[] {
-  const trimmed = text.trim();
   const existing = entries.find((entry) => entry.date === date);
 
-  if (!trimmed) {
+  if (!text.trim()) {
     if (!existing) return entries;
     return entries.filter((entry) => entry.date !== date);
   }
 
   const next: JournalEntry = {
     date,
-    text: trimmed,
+    text,
     updatedAt: Date.now(),
   };
 
