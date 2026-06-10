@@ -13,7 +13,14 @@ function createId() {
 export default function IdeaFlowApp() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [input, setInput] = useState("");
+  const [liveTranscript, setLiveTranscript] = useState("");
   const [hydrated, setHydrated] = useState(false);
+
+  const displayInput = liveTranscript
+    ? input
+      ? `${input} ${liveTranscript}`
+      : liveTranscript
+    : input;
 
   useEffect(() => {
     setIdeas(loadIdeas());
@@ -69,8 +76,11 @@ export default function IdeaFlowApp() {
         <section className="rounded-[1.25rem] border border-white/80 bg-card/90 p-3 shadow-[0_16px_40px_var(--shadow)] backdrop-blur-sm sm:p-4">
           <form onSubmit={addIdea} className="space-y-2.5">
             <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={displayInput}
+              onChange={(e) => {
+                setLiveTranscript("");
+                setInput(e.target.value);
+              }}
               placeholder="a thought, a spark, a maybe…"
               rows={3}
               className="paper-slip w-full resize-none rounded-xl border-2 border-accent-soft/60 px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15"
@@ -84,7 +94,11 @@ export default function IdeaFlowApp() {
               >
                 Catch idea
               </button>
-              <MicButton onTranscript={appendTranscript} size="sm" />
+              <MicButton
+                onTranscript={appendTranscript}
+                onInterim={setLiveTranscript}
+                size="sm"
+              />
             </div>
           </form>
 
