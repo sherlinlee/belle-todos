@@ -92,18 +92,20 @@ export default function PinLogin() {
 
   return (
     <div className="safe-px safe-pt safe-pb mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-4">
-      <div className="w-full rounded-2xl border border-white/80 bg-card/90 p-6 shadow-[0_12px_40px_var(--shadow)] backdrop-blur-sm sm:p-8">
-        <div className="mb-5 flex items-center justify-center gap-2">
-          <BelleAvatar size={40} />
-          <div className="text-center">
+      <div className="w-full rounded-2xl border border-white/80 bg-card/90 p-6 text-center shadow-[0_12px_40px_var(--shadow)] backdrop-blur-sm sm:p-8">
+        <div className="mb-5 flex flex-col items-center gap-2.5">
+          <BelleAvatar size={44} />
+          <div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-accent">
               ✿ belle&apos;s cosy corner ✿
             </p>
-            <h1 className="text-xl font-bold text-foreground">enter your pin</h1>
+            <h1 className="mt-1 text-xl font-bold text-foreground">
+              enter your pin
+            </h1>
           </div>
         </div>
 
-        <p className="mb-5 text-center text-sm text-foreground/55">
+        <p className="mb-5 text-sm text-foreground/55">
           6 digits to peek inside
         </p>
 
