@@ -52,12 +52,12 @@ export default function AddTodoForm({
               key={cat.id}
               type="button"
               onClick={() => onCategoryChange(cat.id)}
-              className={`paper-box flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition active:scale-[0.98] ${
+              className={`paper-box flex items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-center transition active:scale-[0.98] ${
                 category === cat.id ? cat.boxActive : cat.boxIdle
               }`}
             >
               <span className="shrink-0 text-sm leading-none">{cat.emoji}</span>
-              <span className="min-w-0 truncate text-[11px] font-bold leading-tight text-foreground">
+              <span className="text-[11px] font-bold leading-tight text-foreground">
                 {cat.boxLabel}
               </span>
             </button>
