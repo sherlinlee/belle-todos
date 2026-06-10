@@ -42,10 +42,13 @@ function createId() {
   return crypto.randomUUID();
 }
 
+const COMPLETE_MS = 200;
+
 type Celebration = {
   message: string;
   emoji: string;
   seed: number;
+  allDone: boolean;
 };
 
 export default function TodoApp() {
@@ -94,13 +97,16 @@ export default function TodoApp() {
 
   useEffect(() => {
     if (!hydrated) return;
-    writeLocalTodos(todos);
-    scheduleCloudPush(() => ({
-      todos,
-      ideas: readLocalIdeas(),
-      journal: readLocalJournal(),
-      updatedAt: Date.now(),
-    }));
+    const handle = window.setTimeout(() => {
+      writeLocalTodos(todos);
+      scheduleCloudPush(() => ({
+        todos,
+        ideas: readLocalIdeas(),
+        journal: readLocalJournal(),
+        updatedAt: Date.now(),
+      }));
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [todos, hydrated]);
 
   const sortedTodos = useMemo(() => sortByDueDate(todos), [todos]);
@@ -146,6 +152,7 @@ export default function TodoApp() {
     setCelebration({
       ...picked,
       seed: Date.now(),
+      allDone: wasLastOne,
     });
   }
 
@@ -194,7 +201,7 @@ export default function TodoApp() {
           ),
         );
         setCompletingId(null);
-      }, 420);
+      }, COMPLETE_MS);
       return;
     }
 
@@ -205,18 +212,19 @@ export default function TodoApp() {
       return;
     }
 
+    const wasLastOne =
+      remainingRegularCount(
+        todos.map((t) => (t.id === id ? { ...t, completed: true } : t)),
+      ) === 0;
+
     setCompletingId(id);
     window.setTimeout(() => {
-      setTodos((prev) => {
-        const next = prev.map((t) =>
-          t.id === id ? { ...t, completed: true } : t,
-        );
-        const remaining = remainingRegularCount(next);
-        celebrate(remaining === 0);
-        return next;
-      });
+      setTodos((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed: true } : t)),
+      );
       setCompletingId(null);
-    }, 420);
+      celebrate(wasLastOne);
+    }, COMPLETE_MS);
   }
 
   function deleteTodo(id: string) {
@@ -265,6 +273,7 @@ export default function TodoApp() {
           <CelebrationToast
             message={celebration.message}
             emoji={celebration.emoji}
+            allDone={celebration.allDone}
             onDone={dismissCelebration}
           />
         </>

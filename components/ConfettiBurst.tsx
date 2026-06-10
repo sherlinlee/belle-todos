@@ -10,7 +10,7 @@ type ConfettiBurstProps = {
 
 export default function ConfettiBurst({ seed }: ConfettiBurstProps) {
   const pieces = useMemo(() => {
-    return Array.from({ length: 18 }, (_, i) => ({
+    return Array.from({ length: 10 }, (_, i) => ({
       id: i,
       left: `${10 + ((seed * 37 + i * 19) % 80)}%`,
       delay: `${(i % 6) * 0.04}s`,

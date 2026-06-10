@@ -23,37 +23,42 @@ export default function EssentialsStrip({
         rituals
       </p>
       <div className="flex flex-wrap gap-2">
-        {todos.map((todo) => (
+        {todos.map((todo) => {
+          const completing = completingId === todo.id;
+          const checked = todo.completed || completing;
+
+          return (
           <button
             key={todo.id}
             type="button"
             onClick={() => onToggle(todo.id)}
             aria-label={
-              todo.completed
+              checked
                 ? `Mark "${todo.text}" as not done today`
                 : `Mark "${todo.text}" as done today`
             }
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition active:scale-95 ${
-              completingId === todo.id ? "animate-complete-fly" : ""
+              completing ? "animate-complete-fly" : ""
             } ${
-              todo.completed
+              checked
                 ? "border-accent-soft/50 bg-white/70 text-foreground/40 line-through"
                 : "border-accent-soft/70 bg-white text-foreground"
             }`}
           >
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] ${
-                todo.completed
+                checked
                   ? "border-accent bg-accent text-white"
                   : "border-accent-soft/80 bg-white"
               }`}
             >
-              {todo.completed ? "✓" : ""}
+              {checked ? "✓" : ""}
             </span>
             {todo.id === DEVOTION_ID && <BookAvatar size={16} />}
             <span>{todo.text}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -21,6 +21,9 @@ type TodoItemProps = {
   onUpdate: (id: string, updates: TodoUpdates) => void;
 };
 
+const desktopActionBtnClass =
+  "hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm text-foreground/45 transition active:bg-accent-soft/35 active:text-accent [@media(hover:hover)_and_(pointer:fine)]:flex [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100";
+
 export default function TodoItem({
   todo,
   isCompleting,
@@ -57,6 +60,7 @@ export default function TodoItem({
 
   const category = getCategoryMeta(todo.category);
   const due = todo.dueDate ? formatDueDate(todo.dueDate) : null;
+  const checked = todo.completed || isCompleting;
 
   function startEdit() {
     setDraftText(todo.text);
@@ -81,7 +85,7 @@ export default function TodoItem({
     <li
       ref={setNodeRef}
       style={style}
-      className={`paper-slip group relative flex flex-col gap-1.5 rounded-xl border border-accent-soft/45 px-2 py-2 transition ${
+      className={`paper-slip group relative flex flex-col gap-1.5 rounded-xl border border-accent-soft/45 px-2.5 py-2.5 transition sm:px-2 sm:py-2 ${
         isDragging
           ? "z-10 scale-[1.01] shadow-md ring-2 ring-accent/25"
           : editing
@@ -89,16 +93,16 @@ export default function TodoItem({
             : "hover:border-accent/40"
       } ${isCompleting ? "animate-complete-fly" : "animate-pop-in"}`}
     >
-      <div className="flex items-start gap-1.5">
+      <div className="flex items-start gap-2 sm:gap-1.5">
         <button
           type="button"
           disabled={editing}
-          className="flex h-7 w-5 shrink-0 cursor-grab touch-none items-center justify-center text-foreground/20 transition hover:text-accent active:cursor-grabbing disabled:opacity-30"
+          className="flex h-11 w-7 shrink-0 cursor-grab touch-none items-center justify-center text-foreground/25 transition hover:text-accent active:cursor-grabbing disabled:opacity-30 sm:h-7 sm:w-5"
           aria-label={`Drag to reorder ${todo.text}`}
           {...attributes}
           {...listeners}
         >
-          <svg width="8" height="12" viewBox="0 0 10 14" fill="currentColor">
+          <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
             <circle cx="2" cy="2" r="1.2" />
             <circle cx="8" cy="2" r="1.2" />
             <circle cx="2" cy="7" r="1.2" />
@@ -113,19 +117,21 @@ export default function TodoItem({
           disabled={editing}
           onClick={() => onToggle(todo.id)}
           aria-label={
-            todo.completed
+            checked
               ? `Mark "${todo.text}" as incomplete`
               : `Mark "${todo.text}" as complete`
           }
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition disabled:opacity-40 ${
-            todo.completed
-              ? "border-accent bg-accent text-white"
-              : "border-accent-soft bg-white active:scale-95"
-          }`}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:scale-95 disabled:opacity-40 sm:h-8 sm:w-8"
         >
-          {todo.completed && (
-            <span className="text-[10px] leading-none">✓</span>
-          )}
+          <span
+            className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition sm:h-5 sm:w-5 sm:border ${
+              checked
+                ? "border-accent bg-accent text-white"
+                : "border-accent-soft bg-white"
+            }`}
+          >
+            {checked && <span className="text-xs leading-none sm:text-[10px]">✓</span>}
+          </span>
         </button>
 
         {editing ? (
@@ -178,36 +184,34 @@ export default function TodoItem({
               <button
                 type="button"
                 onClick={saveEdit}
-                className="rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white"
+                className="rounded-lg bg-accent px-3 py-2 text-xs font-bold text-white sm:py-1.5"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-lg bg-background px-3 py-1.5 text-xs font-semibold text-foreground/50"
+                className="rounded-lg bg-background px-3 py-2 text-xs font-semibold text-foreground/50 sm:py-1.5"
               >
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <div className="min-w-0 flex-1">
-            <button type="button" onClick={startEdit} className="w-full text-left">
-              <span
-                className={`block break-words text-sm leading-snug ${
-                  todo.completed
-                    ? "text-foreground/40 line-through decoration-accent-soft"
-                    : "text-foreground"
-                }`}
-              >
-                {todo.text}
-              </span>
-            </button>
+          <div className="min-w-0 flex-1 pt-1 sm:pt-0">
+            <p
+              className={`break-words text-sm leading-snug ${
+                checked
+                  ? "text-foreground/40 line-through decoration-accent-soft"
+                  : "text-foreground"
+              }`}
+            >
+              {todo.text}
+            </p>
 
-            <div className="mt-1 flex flex-wrap items-center gap-1">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <span
-                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${category.pill}`}
+                className={`inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[10px] font-semibold ${category.pill}`}
               >
                 {category.emoji} {category.boxLabel}
               </span>
@@ -215,7 +219,7 @@ export default function TodoItem({
               <button
                 type="button"
                 onClick={startEdit}
-                className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                className={`inline-flex min-h-8 items-center gap-0.5 rounded-full px-2 py-1 text-[10px] font-semibold active:scale-95 ${
                   due
                     ? due.tone === "overdue"
                       ? "bg-red-100 text-red-600"
@@ -234,12 +238,12 @@ export default function TodoItem({
         )}
 
         {!editing && (
-          <div className="flex shrink-0">
+          <div className="hidden shrink-0 [@media(hover:hover)_and_(pointer:fine)]:flex [@media(hover:hover)_and_(pointer:fine)]:flex-row">
             <button
               type="button"
               onClick={startEdit}
               aria-label={`Edit "${todo.text}"`}
-              className="rounded-lg px-1.5 text-xs text-foreground/30 active:text-accent sm:opacity-0 sm:group-hover:opacity-100"
+              className={desktopActionBtnClass}
             >
               ✎
             </button>
@@ -247,13 +251,38 @@ export default function TodoItem({
               type="button"
               onClick={() => onDelete(todo.id)}
               aria-label={`Delete "${todo.text}"`}
-              className="rounded-lg px-1.5 text-xs text-foreground/30 active:text-accent sm:opacity-0 sm:group-hover:opacity-100"
+              className={desktopActionBtnClass}
             >
               ✕
             </button>
           </div>
         )}
       </div>
+
+      {!editing && (
+        <div className="mt-2 flex gap-2 border-t border-accent-soft/35 pt-2.5 [@media(hover:hover)_and_(pointer:fine)]:hidden">
+          <button
+            type="button"
+            onClick={startEdit}
+            className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2.5 rounded-xl border-2 border-accent-soft/55 bg-white px-4 text-base font-bold text-foreground/85 active:bg-accent-soft/35"
+          >
+            <span className="text-2xl leading-none" aria-hidden>
+              ✎
+            </span>
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(todo.id)}
+            className="flex min-h-[3.25rem] flex-1 items-center justify-center gap-2.5 rounded-xl border-2 border-accent-soft/55 bg-white px-4 text-base font-bold text-foreground/85 active:bg-red-50 active:text-red-600"
+          >
+            <span className="text-2xl leading-none" aria-hidden>
+              ✕
+            </span>
+            Delete
+          </button>
+        </div>
+      )}
     </li>
   );
 }

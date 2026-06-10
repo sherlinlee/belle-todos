@@ -5,30 +5,36 @@ import { useEffect } from "react";
 type CelebrationToastProps = {
   message: string;
   emoji: string;
+  allDone: boolean;
   onDone: () => void;
 };
 
 export default function CelebrationToast({
   message,
   emoji,
+  allDone,
   onDone,
 }: CelebrationToastProps) {
   useEffect(() => {
-    const timer = window.setTimeout(onDone, 2800);
+    const timer = window.setTimeout(onDone, allDone ? 1400 : 800);
     return () => window.clearTimeout(timer);
-  }, [onDone]);
+  }, [onDone, allDone]);
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-6"
+      className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-6"
       role="status"
       aria-live="polite"
     >
-      <div className="animate-celebration-pop flex max-w-md flex-col items-center gap-3 rounded-[2rem] border-2 border-accent-soft/60 bg-card/95 px-8 py-6 text-center shadow-[0_24px_60px_var(--shadow)] backdrop-blur-md sm:px-10 sm:py-7">
-        <span className="animate-celebration-bounce text-4xl sm:text-5xl">
+      <div
+        className={`flex max-w-sm items-center gap-3 rounded-2xl border-2 border-accent-soft/50 bg-card/95 px-4 py-3 shadow-[0_12px_32px_var(--shadow)] ${
+          allDone ? "animate-celebration-toast-long" : "animate-celebration-toast"
+        }`}
+      >
+        <span className="animate-celebration-once shrink-0 text-2xl">
           {emoji}
         </span>
-        <p className="text-base font-bold leading-snug text-foreground sm:text-lg">
+        <p className="text-sm font-bold leading-snug text-foreground">
           {message}
         </p>
       </div>
