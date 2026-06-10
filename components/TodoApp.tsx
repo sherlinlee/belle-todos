@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AddTodoForm from "@/components/AddTodoForm";
 import CelebrationToast from "@/components/CelebrationToast";
 import ConfettiBurst from "@/components/ConfettiBurst";
+import EssentialCard from "@/components/EssentialCard";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
 import BelleAvatar from "@/components/BelleAvatar";
@@ -11,6 +12,13 @@ import BottomNav from "@/components/BottomNav";
 import WeatherForecast from "@/components/WeatherForecast";
 import { CATEGORIES } from "@/lib/categories";
 import { allDoneEncouragement, pickEncouragement } from "@/lib/encouragements";
+import {
+  completePermanentTodo,
+  ensureEssentials,
+  isPermanentTodo,
+  uncompletePermanentTodo,
+  visibleEssentials,
+} from "@/lib/essentials";
 import { migrateTodos, reorderTodos, sortByOrder } from "@/lib/migrate";
 import type {
   Category,
@@ -48,10 +56,12 @@ export default function TodoApp() {
         localStorage.getItem(STORAGE_KEY) ??
         localStorage.getItem("to-dos-items");
       if (saved) {
-        setTodos(migrateTodos(JSON.parse(saved)));
+        setTodos(ensureEssentials(migrateTodos(JSON.parse(saved))));
+      } else {
+        setTodos(ensureEssentials([]));
       }
     } catch {
-      setTodos([]);
+      setTodos(ensureEssentials([]));
     }
     setHydrated(true);
   }, []);
@@ -63,8 +73,14 @@ export default function TodoApp() {
 
   const sortedTodos = useMemo(() => sortByOrder(todos), [todos]);
 
+  const essentialTodos = useMemo(
+    () => visibleEssentials(sortedTodos, statusFilter),
+    [sortedTodos, statusFilter],
+  );
+
   const filteredTodos = useMemo(() => {
     return sortedTodos.filter((todo) => {
+      if (isPermanentTodo(todo)) return false;
       if (categoryFilter !== "all" && todo.category !== categoryFilter) {
         return false;
       }
@@ -114,6 +130,31 @@ export default function TodoApp() {
     const target = todos.find((t) => t.id === id);
     if (!target) return;
 
+    if (target.permanent) {
+      if (target.completed) {
+        setTodos((prev) =>
+          prev.map((t) =>
+            t.id === id ? uncompletePermanentTodo(t) : t,
+          ),
+        );
+        return;
+      }
+
+      setCompletingId(id);
+      window.setTimeout(() => {
+        setTodos((prev) => {
+          const next = prev.map((t) =>
+            t.id === id ? completePermanentTodo(t) : t,
+          );
+          const remaining = next.filter((t) => !t.completed).length;
+          celebrate(remaining === 0);
+          return next;
+        });
+        setCompletingId(null);
+      }, 420);
+      return;
+    }
+
     if (target.completed) {
       setTodos((prev) =>
         prev.map((t) => (t.id === id ? { ...t, completed: false } : t)),
@@ -128,7 +169,7 @@ export default function TodoApp() {
           t.id === id ? { ...t, completed: true } : t,
         );
         const remaining = next.filter((t) => !t.completed).length;
-        celebrate(remaining === 0 && next.length > 0);
+        celebrate(remaining === 0);
         return next;
       });
       setCompletingId(null);
@@ -136,17 +177,24 @@ export default function TodoApp() {
   }
 
   function deleteTodo(id: string) {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
+    setTodos((prev) =>
+      prev.filter((t) => t.id !== id || isPermanentTodo(t)),
+    );
   }
 
   function updateTodo(id: string, updates: TodoUpdates) {
+    const target = todos.find((t) => t.id === id);
+    if (!target || isPermanentTodo(target)) return;
+
     setTodos((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
     );
   }
 
   function clearCompleted() {
-    setTodos((prev) => prev.filter((t) => !t.completed));
+    setTodos((prev) =>
+      prev.filter((t) => !t.completed || isPermanentTodo(t)),
+    );
   }
 
   function handleReorder(activeId: string, overId: string) {
@@ -269,9 +317,27 @@ export default function TodoApp() {
             ))}
           </div>
 
+          {hydrated && essentialTodos.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-accent">
+                ✿ daily essentials ✿
+              </p>
+              <div className="space-y-2">
+                {essentialTodos.map((todo) => (
+                  <EssentialCard
+                    key={todo.id}
+                    todo={todo}
+                    isCompleting={completingId === todo.id}
+                    onToggle={toggleTodo}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {!hydrated ? (
             <p className="py-10 text-center text-foreground/50">Loading…</p>
-          ) : filteredTodos.length === 0 ? (
+          ) : filteredTodos.length === 0 && essentialTodos.length === 0 ? (
             <div className="rounded-2xl bg-background/70 px-3 py-10 text-center sm:px-4 sm:py-12">
               <p className="animate-float-gentle text-3xl">🌷</p>
               <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">

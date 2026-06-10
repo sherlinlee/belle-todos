@@ -23,6 +23,9 @@ export function migrateTodos(data: unknown): Todo[] {
       dueDate: typeof raw.dueDate === "string" ? raw.dueDate : null,
       category,
       order: typeof raw.order === "number" ? raw.order : index,
+      permanent: raw.permanent === true ? true : undefined,
+      lastCompletedDate:
+        typeof raw.lastCompletedDate === "string" ? raw.lastCompletedDate : null,
     } satisfies Todo;
   });
 }
