@@ -7,7 +7,7 @@ import CrossIcon from "@/components/CrossIcon";
 import JournalArchive from "@/components/JournalArchive";
 import MicButton from "@/components/MicButton";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
-import { todayString } from "@/lib/dates";
+import { dayBefore, todayString } from "@/lib/dates";
 import {
   entryForDate,
   groupJournalArchive,
@@ -33,8 +33,11 @@ export default function JournalApp() {
   const [today, setToday] = useState(todayString);
   const [hydrated, setHydrated] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
+  const [writingDate, setWritingDate] = useState(todayString);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const skipSaveIndicator = useRef(true);
+  const prevToday = useRef(today);
 
   const verse = useMemo(() => verseForDate(today), [today]);
   const archive = useMemo(() => groupJournalArchive(entries), [entries]);
@@ -54,7 +57,17 @@ export default function JournalApp() {
     };
   }, []);
 
-  const reflection = entryForDate(entries, today)?.text ?? "";
+  useEffect(() => {
+    if (prevToday.current === today) return;
+    if (writingDate === prevToday.current) {
+      setWritingDate(today);
+      setShowDatePicker(false);
+    }
+    prevToday.current = today;
+  }, [today, writingDate]);
+
+  const reflection = entryForDate(entries, writingDate)?.text ?? "";
+  const isWritingToday = writingDate === today;
   const displayReflection = liveTranscript
     ? reflection
       ? `${reflection} ${liveTranscript}`
@@ -106,19 +119,40 @@ export default function JournalApp() {
 
     if (skipSaveIndicator.current) {
       skipSaveIndicator.current = false;
-      const existing = entryForDate(entries, today)?.text?.trim() ?? "";
+      const existing = entryForDate(entries, writingDate)?.text?.trim() ?? "";
       setSaveStatus(existing ? "saved" : "idle");
       return;
     }
 
     setSaveStatus("saving");
     const timer = window.setTimeout(() => {
-      const hasText = (entryForDate(entries, today)?.text ?? "").trim().length > 0;
+      const hasText =
+        (entryForDate(entries, writingDate)?.text ?? "").trim().length > 0;
       setSaveStatus(hasText ? "saved" : "idle");
     }, 400);
 
     return () => window.clearTimeout(timer);
-  }, [entries, hydrated, today]);
+  }, [entries, hydrated, writingDate]);
+
+  function selectWritingDate(date: string) {
+    if (!date || date > today) return;
+    setLiveTranscript("");
+    setWritingDate(date);
+    skipSaveIndicator.current = true;
+    const existing = entryForDate(entries, date)?.text?.trim() ?? "";
+    setSaveStatus(existing ? "saved" : "idle");
+  }
+
+  function backToToday() {
+    selectWritingDate(today);
+    setShowDatePicker(false);
+  }
+
+  function openMissedDay() {
+    if (!isWritingToday) return;
+    setShowDatePicker(true);
+    selectWritingDate(dayBefore(today));
+  }
 
   function markSaving() {
     if (liveTranscript) return;
@@ -126,7 +160,7 @@ export default function JournalApp() {
   }
 
   function updateReflection(text: string) {
-    setEntries((prev) => upsertJournalEntry(prev, today, text));
+    setEntries((prev) => upsertJournalEntry(prev, writingDate, text));
   }
 
   function handleReflectionChange(text: string) {
@@ -138,14 +172,23 @@ export default function JournalApp() {
   function appendTranscript(chunk: string) {
     markSaving();
     setEntries((prev) => {
-      const current = entryForDate(prev, today)?.text ?? "";
+      const current = entryForDate(prev, writingDate)?.text ?? "";
       return upsertJournalEntry(
         prev,
-        today,
+        writingDate,
         current ? `${current} ${chunk}` : chunk,
       );
     });
     setLiveTranscript("");
+  }
+
+  function editFromArchive(date: string) {
+    selectWritingDate(date);
+    setShowDatePicker(true);
+    document.getElementById("journal-reflection")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   }
 
   return (
@@ -192,7 +235,9 @@ export default function JournalApp() {
               htmlFor="journal-reflection"
               className="text-xs font-bold uppercase tracking-wide text-foreground/55"
             >
-              today&apos;s reflection
+              {isWritingToday
+                ? "today's reflection"
+                : formatJournalDate(writingDate)}
             </label>
             {hydrated && liveTranscript && (
               <span className="text-[10px] font-semibold text-accent animate-pulse">
@@ -216,11 +261,36 @@ export default function JournalApp() {
             </p>
           ) : (
             <>
+              {(showDatePicker || !isWritingToday) && (
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <input
+                    type="date"
+                    value={writingDate}
+                    max={today}
+                    onChange={(e) => selectWritingDate(e.target.value)}
+                    className="rounded-lg border border-accent-soft/50 bg-white/80 px-2 py-1.5 text-xs text-foreground outline-none focus:border-accent"
+                    aria-label="Pick journal date"
+                  />
+                  {!isWritingToday && (
+                    <button
+                      type="button"
+                      onClick={backToToday}
+                      className="text-[10px] font-semibold text-accent underline-offset-2 hover:underline"
+                    >
+                      back to today
+                    </button>
+                  )}
+                </div>
+              )}
               <textarea
                 id="journal-reflection"
                 value={displayReflection}
                 onChange={(e) => handleReflectionChange(e.target.value)}
-                placeholder="what stood out to you today? prayers, gratitude, notes…"
+                placeholder={
+                  isWritingToday
+                    ? "what stood out to you today? prayers, gratitude, notes…"
+                    : "catch up on this day…"
+                }
                 rows={8}
                 className={`paper-slip w-full resize-y rounded-xl border-2 px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-xs placeholder:text-foreground/35 focus:border-accent focus:ring-2 focus:ring-accent/15 ${
                   saveStatus === "saved" && !liveTranscript
@@ -229,11 +299,21 @@ export default function JournalApp() {
                 }`}
               />
               <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-[10px] font-semibold text-foreground/35">
-                  {saveStatus === "saved"
-                    ? "in your journal below ✿"
-                    : "one entry per day"}
-                </p>
+                <div className="min-w-0 text-[10px] font-semibold text-foreground/35">
+                  {saveStatus === "saved" ? (
+                    <span>in your journal below ✿</span>
+                  ) : isWritingToday && !showDatePicker ? (
+                    <button
+                      type="button"
+                      onClick={openMissedDay}
+                      className="text-foreground/45 underline-offset-2 hover:text-foreground/60 hover:underline"
+                    >
+                      missed a day?
+                    </button>
+                  ) : (
+                    <span>one entry per day</span>
+                  )}
+                </div>
                 <MicButton
                   onTranscript={appendTranscript}
                   onInterim={setLiveTranscript}
@@ -248,6 +328,7 @@ export default function JournalApp() {
           archive={archive}
           totalSaved={totalSaved}
           today={today}
+          onSelectDate={editFromArchive}
         />
       </main>
 

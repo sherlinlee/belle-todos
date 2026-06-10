@@ -8,12 +8,14 @@ type JournalArchiveProps = {
   archive: JournalYearGroup[];
   totalSaved: number;
   today: string;
+  onSelectDate?: (date: string) => void;
 };
 
 export default function JournalArchive({
   archive,
   totalSaved,
   today,
+  onSelectDate,
 }: JournalArchiveProps) {
   const [open, setOpen] = useState(totalSaved > 0);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => {
@@ -58,7 +60,7 @@ export default function JournalArchive({
           </span>
           <span className="mt-0.5 block text-[10px] font-semibold text-foreground/40">
             {totalSaved > 0
-              ? `${totalSaved} ${totalSaved === 1 ? "day" : "days"} · browse by month & year`
+              ? `${totalSaved} ${totalSaved === 1 ? "day" : "days"} · tap a day to edit`
               : "past days show up here as you write"}
           </span>
         </div>
@@ -130,27 +132,32 @@ export default function JournalArchive({
                               {monthOpen && (
                                 <ul className="mt-1 space-y-1.5 pl-1">
                                   {group.entries.map((entry) => (
-                                    <li
-                                      key={entry.date}
-                                      className={`paper-slip rounded-xl border px-2.5 py-2 ${
-                                        entry.date === today
-                                          ? "border-accent-soft/70 bg-white/80"
-                                          : "border-accent-soft/40"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <p className="text-[10px] font-bold text-foreground/50">
-                                          {formatJournalDate(entry.date)}
+                                    <li key={entry.date}>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          onSelectDate?.(entry.date)
+                                        }
+                                        className={`paper-slip w-full rounded-xl border px-2.5 py-2 text-left transition active:scale-[0.99] ${
+                                          entry.date === today
+                                            ? "border-accent-soft/70 bg-white/80"
+                                            : "border-accent-soft/40 hover:border-accent-soft/65"
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-[10px] font-bold text-foreground/50">
+                                            {formatJournalDate(entry.date)}
+                                          </p>
+                                          {entry.date === today && (
+                                            <span className="rounded-full bg-accent-soft/50 px-1.5 py-0.5 text-[9px] font-bold text-foreground/55">
+                                              today
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/80">
+                                          {entry.text}
                                         </p>
-                                        {entry.date === today && (
-                                          <span className="rounded-full bg-accent-soft/50 px-1.5 py-0.5 text-[9px] font-bold text-foreground/55">
-                                            today
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/80">
-                                        {entry.text}
-                                      </p>
+                                      </button>
                                     </li>
                                   ))}
                                 </ul>
