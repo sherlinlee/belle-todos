@@ -22,7 +22,7 @@ type TodoItemProps = {
 };
 
 const desktopActionBtnClass =
-  "hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm text-foreground/45 transition active:bg-accent-soft/35 active:text-accent [@media(hover:hover)_and_(pointer:fine)]:flex [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100";
+  "todo-desktop-actions h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm text-foreground/45 opacity-0 transition active:bg-accent-soft/35 active:text-accent group-hover:opacity-100";
 
 export default function TodoItem({
   todo,
@@ -238,7 +238,7 @@ export default function TodoItem({
         )}
 
         {!editing && (
-          <div className="hidden shrink-0 [@media(hover:hover)_and_(pointer:fine)]:flex [@media(hover:hover)_and_(pointer:fine)]:flex-row">
+          <div className="todo-desktop-actions shrink-0 flex-row">
             <button
               type="button"
               onClick={startEdit}
@@ -260,7 +260,7 @@ export default function TodoItem({
       </div>
 
       {!editing && (
-        <div className="mt-2 flex gap-2 border-t border-accent-soft/35 pt-2.5 [@media(hover:hover)_and_(pointer:fine)]:hidden">
+        <div className="todo-mobile-actions mt-2 gap-2 border-t border-accent-soft/35 pt-2.5">
           <button
             type="button"
             onClick={startEdit}
