@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import BookAvatar from "@/components/BookAvatar";
+import BelleAvatar from "@/components/BelleAvatar";
 import BottomNav from "@/components/BottomNav";
+import CrossIcon from "@/components/CrossIcon";
 import JournalArchive from "@/components/JournalArchive";
 import MicButton from "@/components/MicButton";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
@@ -140,17 +141,15 @@ export default function JournalApp() {
             journal
           </h1>
           <p className="mt-1.5 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-foreground/70">
-            <BookAvatar size={22} tone="muted" />
             <span>{formatJournalDate(today)}</span>
+            <BelleAvatar size={28} />
           </p>
         </header>
 
         <section className="mb-3 rounded-[1.25rem] border border-white/80 bg-card/90 p-3 shadow-[0_16px_40px_var(--shadow)] backdrop-blur-sm sm:p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-lg" aria-hidden>
-              ✝
-            </span>
-            <p className="text-xs font-bold uppercase tracking-wide text-accent">
+          <div className="mb-2 flex items-center gap-1.5">
+            <CrossIcon size={12} />
+            <p className="text-[10px] font-bold uppercase tracking-wide text-foreground/45">
               verse of the day
             </p>
           </div>
@@ -158,7 +157,7 @@ export default function JournalApp() {
             <p className="text-sm leading-relaxed text-foreground/85">
               &ldquo;{verse.text}&rdquo;
             </p>
-            <footer className="mt-2 text-right text-xs font-bold text-accent">
+            <footer className="mt-2 text-right text-[11px] font-semibold text-foreground/50">
               — {verse.reference}
             </footer>
           </blockquote>
