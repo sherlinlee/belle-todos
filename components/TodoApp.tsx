@@ -491,7 +491,7 @@ export default function TodoApp() {
               <button
                 type="button"
                 onClick={clearCompleted}
-                className="touch-target shrink-0 font-semibold text-accent transition active:text-[#ff7a9d]"
+                className="touch-target shrink-0 font-semibold text-accent transition active:text-accent-deep"
               >
                 Clear done
               </button>

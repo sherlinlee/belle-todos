@@ -36,7 +36,7 @@ export default function AddTodoForm({
         />
         <button
           type="submit"
-          className="animate-wiggle min-h-14 shrink-0 rounded-xl bg-accent px-5 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-[#ff7a9d] active:scale-95 sm:min-h-[3.25rem] sm:py-3"
+          className="animate-wiggle min-h-14 shrink-0 rounded-xl bg-accent px-5 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-accent-deep active:scale-95 sm:min-h-[3.25rem] sm:py-3"
         >
           Add
         </button>
