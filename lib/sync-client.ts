@@ -180,3 +180,12 @@ export function scheduleCloudPush(getData: () => BelleSyncData) {
     void pushCloudSync(payload);
   }, 700);
 }
+
+export function flushPendingCloudPush() {
+  if (pushTimer) {
+    clearTimeout(pushTimer);
+    pushTimer = null;
+  }
+  const snapshot = buildLocalSnapshot();
+  void pushCloudSync({ ...snapshot, updatedAt: Date.now() });
+}

@@ -2,23 +2,23 @@
 
 import { useEffect } from "react";
 
+const TOAST_MS = 1400;
+
 type CelebrationToastProps = {
   message: string;
   emoji: string;
-  allDone: boolean;
   onDone: () => void;
 };
 
 export default function CelebrationToast({
   message,
   emoji,
-  allDone,
   onDone,
 }: CelebrationToastProps) {
   useEffect(() => {
-    const timer = window.setTimeout(onDone, allDone ? 1400 : 800);
+    const timer = window.setTimeout(onDone, TOAST_MS);
     return () => window.clearTimeout(timer);
-  }, [onDone, allDone]);
+  }, [onDone]);
 
   return (
     <div
@@ -26,11 +26,7 @@ export default function CelebrationToast({
       role="status"
       aria-live="polite"
     >
-      <div
-        className={`flex max-w-sm items-center gap-3 rounded-2xl border-2 border-accent-soft/50 bg-card/95 px-4 py-3 shadow-[0_12px_32px_var(--shadow)] ${
-          allDone ? "animate-celebration-toast-long" : "animate-celebration-toast"
-        }`}
-      >
+      <div className="animate-celebration-toast-long flex max-w-sm items-center gap-3 rounded-2xl border-2 border-accent-soft/50 bg-card/95 px-4 py-3 shadow-[0_12px_32px_var(--shadow)]">
         <span className="animate-celebration-once shrink-0 text-2xl">
           {emoji}
         </span>
