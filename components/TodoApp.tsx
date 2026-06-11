@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import AddTodoForm from "@/components/AddTodoForm";
 import CelebrationToast from "@/components/CelebrationToast";
 import CompletionFlash from "@/components/CompletionFlash";
@@ -143,15 +143,18 @@ export default function TodoApp() {
 
   useCloudRefresh(onCloudRefresh);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!hydrated) return;
-    writeLocalTodos(todos);
-    scheduleCloudPush(() => ({
-      todos,
-      ideas: readLocalIdeas(),
-      journal: readLocalJournal(),
-      updatedAt: Date.now(),
-    }));
+    const handle = window.setTimeout(() => {
+      writeLocalTodos(todos);
+      scheduleCloudPush(() => ({
+        todos,
+        ideas: readLocalIdeas(),
+        journal: readLocalJournal(),
+        updatedAt: Date.now(),
+      }));
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [todos, hydrated]);
 
   const sortedTodos = useMemo(() => sortByDueDate(todos), [todos]);
@@ -270,16 +273,26 @@ export default function TodoApp() {
     setCompletingId(id);
     lastToggleRef.current = { id, expectedCompleted: true, at: Date.now() };
     hapticComplete();
+    const wasLastOne =
+      remainingRegularCount(
+        todos.map((t) => (t.id === id ? { ...t, completed: true } : t)),
+      ) === 0;
+
     window.setTimeout(() => {
-      setTodos((prev) => {
-        const next = prev.map((t) =>
-          t.id === id ? { ...t, completed: true } : t,
-        );
-        const remaining = remainingRegularCount(next);
-        celebrate(remaining === 0);
-        return next;
-      });
-      window.setTimeout(() => setCompletingId(null), COMPLETE_FLY_MS);
+      setTodos((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed: true } : t)),
+      );
+
+      if (!wasLastOne) {
+        startTransition(() => celebrate(false));
+      }
+
+      window.setTimeout(() => {
+        setCompletingId(null);
+        if (wasLastOne) {
+          startTransition(() => celebrate(true));
+        }
+      }, COMPLETE_FLY_MS);
     }, CHECK_FEEDBACK_MS);
   }
 
@@ -323,24 +336,7 @@ export default function TodoApp() {
         <div className="animate-float-slow absolute left-1/2 top-1/3 h-48 w-48 -translate-x-1/2 rounded-full bg-lavender/50 blur-3xl" />
       </div>
 
-      {celebration && (
-        <>
-          <ConfettiBurst seed={celebration.seed} />
-          <CelebrationToast
-            message={celebration.message}
-            emoji={celebration.emoji}
-            onDone={dismissCelebration}
-          />
-        </>
-      )}
-
-      {completionFlash && (
-        <CompletionFlash
-          message={completionFlash.message}
-          emoji={completionFlash.emoji}
-          onDone={dismissCompletionFlash}
-        />
-      )}
+      {celebration && <ConfettiBurst seed={celebration.seed} />}
 
       <main className="relative mx-auto w-full max-w-lg pb-2 pt-2 sm:pt-4">
         <header className="mb-5 text-center sm:mb-8">
@@ -450,25 +446,46 @@ export default function TodoApp() {
           {!hydrated ? (
             <p className="py-10 text-center text-foreground/50">Loading…</p>
           ) : filteredTodos.length === 0 ? (
-            <div className="rounded-2xl bg-background/70 px-3 py-10 text-center sm:px-4 sm:py-12">
-              <p className="animate-float-gentle text-3xl">🌷</p>
-              <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">
-                {statusFilter === "completed"
-                  ? "Nothing checked off yet — you've got this!"
-                  : statusFilter === "active"
-                    ? "All caught up! Time for a tiny celebration."
-                    : "Your box is empty. Add something sweet above."}
-              </p>
+            <div className="flex min-h-[10rem] flex-col items-center justify-center rounded-2xl bg-background/70 px-3 py-10 text-center sm:px-4 sm:py-12">
+              {celebration && statusFilter === "active" ? (
+                <CelebrationToast
+                  message={celebration.message}
+                  emoji={celebration.emoji}
+                  onDone={dismissCelebration}
+                />
+              ) : (
+                <>
+                  <p className="animate-float-gentle text-3xl">🌷</p>
+                  <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">
+                    {statusFilter === "completed"
+                      ? "Nothing checked off yet — you've got this!"
+                      : statusFilter === "active"
+                        ? "All caught up! Time for a tiny celebration."
+                        : "Your box is empty. Add something sweet above."}
+                  </p>
+                </>
+              )}
             </div>
           ) : (
-            <SortableTodoList
-              todos={filteredTodos}
-              completingId={completingId}
-              onToggle={toggleTodo}
-              onDelete={deleteTodo}
-              onUpdate={updateTodo}
-              onReorder={handleReorder}
-            />
+            <div className="relative pb-2">
+              <SortableTodoList
+                todos={filteredTodos}
+                completingId={completingId}
+                onToggle={toggleTodo}
+                onDelete={deleteTodo}
+                onUpdate={updateTodo}
+                onReorder={handleReorder}
+              />
+              {completionFlash && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 pt-2">
+                  <CompletionFlash
+                    message={completionFlash.message}
+                    emoji={completionFlash.emoji}
+                    onDone={dismissCompletionFlash}
+                  />
+                </div>
+              )}
+            </div>
           )}
 
           {hydrated && pendingRituals.length > 0 && (
