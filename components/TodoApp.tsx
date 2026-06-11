@@ -9,6 +9,7 @@ import EssentialsStrip from "@/components/EssentialsStrip";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
 import BelleAvatar from "@/components/BelleAvatar";
+import TulipAvatar from "@/components/TulipAvatar";
 import BottomNav from "@/components/BottomNav";
 import WeatherForecast from "@/components/WeatherForecast";
 import { CATEGORIES } from "@/lib/categories";
@@ -364,9 +365,11 @@ export default function TodoApp() {
             </div>
 
             {ritualCount > 0 && (
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent-soft/40 bg-background/80 px-3 py-1.5 text-[11px] font-semibold text-foreground/55">
-                <span aria-hidden>✿</span>
-                {ritualCount} ritual{ritualCount === 1 ? "" : "s"}
+              <div className="inline-flex max-w-full items-center gap-2.5 rounded-full border-2 border-accent-soft/50 bg-card/80 px-3.5 py-2 shadow-sm backdrop-blur-sm sm:gap-3 sm:px-4">
+                <TulipAvatar size={24} sparkle />
+                <p className="text-xs font-semibold text-foreground/75 sm:text-sm">
+                  {ritualCount} ritual{ritualCount === 1 ? "" : "s"} left
+                </p>
               </div>
             )}
 
