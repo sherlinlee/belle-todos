@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "belle's to-do(s) ✿",
   description: "A cute little to-do list, just for Belle",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon-512.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

@@ -8,8 +8,14 @@ export function middleware(request: NextRequest) {
   if (
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/") ||
     pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    pathname === "/icon" ||
+    pathname === "/apple-icon" ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/apple-touch-icon.png" ||
+    pathname === "/icon-512.png"
   ) {
     return NextResponse.next();
   }
@@ -27,5 +33,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest|apple-touch-icon.png|icon-512.png).*)",
+  ],
 };
