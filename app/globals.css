@@ -332,11 +332,11 @@ body.is-dragging .animate-pop-in {
     opacity: 0;
     transform: translateY(12px) scale(0.94);
   }
-  10% {
+  8% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-  85% {
+  88% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
@@ -451,7 +451,7 @@ body.is-dragging .animate-pop-in {
 }
 
 .animate-celebration-toast-long {
-  animation: celebration-toast-long 1.7s ease-out forwards;
+  animation: celebration-toast-long 2.2s ease-out forwards;
 }
 
 .animate-celebration-pop {
