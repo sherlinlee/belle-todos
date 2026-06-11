@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const TOAST_MS = 1400;
+const TOAST_MS = 1700;
 
 type CelebrationToastProps = {
   message: string;
