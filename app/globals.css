@@ -82,6 +82,28 @@ body {
     0 4px 14px rgba(110, 56, 76, 0.08);
 }
 
+.sortable-list,
+.sortable-handle {
+  -webkit-touch-callout: none;
+}
+
+body.is-dragging {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body.is-dragging * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body.is-dragging input,
+body.is-dragging textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 .paper-box {
   background: linear-gradient(160deg, var(--kraft) 0%, #e5dcd6 100%);
   box-shadow:
