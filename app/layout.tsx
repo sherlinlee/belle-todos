@@ -9,12 +9,13 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "to-do(s) ✿",
-  description: "A cute little to-do list, just for you",
+  title: "belle's to-do(s) ✿",
+  description: "A cute little to-do list, just for Belle",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "to-do(s)",
+    title: "belle's to-do(s)",
   },
 };
 
