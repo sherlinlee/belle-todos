@@ -4,8 +4,8 @@
   "description": "A cute little to-do list, just for Belle",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5eef1",
-  "theme_color": "#f5eef1",
+  "background_color": "#f5a0bd",
+  "theme_color": "#f5a0bd",
   "icons": [
     {
       "src": "/icon-512.png",

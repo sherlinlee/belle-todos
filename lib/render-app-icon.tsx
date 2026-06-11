@@ -17,6 +17,7 @@ export function renderAppIcon({
         width: size,
         height: size,
         display: "flex",
+        overflow: "hidden",
         background: backgroundColor,
       }}
     >
@@ -26,7 +27,12 @@ export function renderAppIcon({
         alt=""
         width={size}
         height={size}
-        style={{ display: "block", width: size, height: size }}
+        style={{
+          display: "block",
+          width: size,
+          height: size,
+          objectFit: "cover",
+        }}
       />
     </div>
   );
