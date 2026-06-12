@@ -77,18 +77,20 @@ function HourlyRain({ hours }: { hours: WeatherHour[] }) {
 
 function DayCard({ day }: { day: WeatherDay }) {
   return (
-    <div className="rounded-[6px] bg-[#F5EFED] px-1 py-1 text-center">
-      <p className="text-[8px] font-bold uppercase tracking-wide text-[#7A4444]">
+    <div className="rounded-[6px] bg-[#F5EFED] px-1.5 py-1">
+      <p className="text-center text-[8px] font-bold uppercase tracking-wide text-[#7A4444]">
         {day.label}
       </p>
-      <div className="flex items-center justify-center gap-0.5 leading-none">
-        <span className="text-xs">{day.emoji}</span>
-        <p className="leading-tight">
+      <div className="mx-auto grid w-fit grid-flow-col items-center gap-x-1.5 gap-y-0">
+        <span className="text-base leading-none" aria-hidden>
+          {day.emoji}
+        </span>
+        <span className="whitespace-nowrap leading-none">
           <span className="text-[11px] font-medium text-[#3D1515]">{day.high}°</span>
           <span className="text-[10px] text-[#8A5555]"> / {day.low}°</span>
-        </p>
+        </span>
       </div>
-      <p className="truncate text-[8px] font-semibold text-[#7A4444]">
+      <p className="truncate text-center text-[8px] font-semibold text-[#7A4444]">
         {day.description}
       </p>
     </div>
