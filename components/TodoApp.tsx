@@ -9,11 +9,13 @@ import EssentialsStrip from "@/components/EssentialsStrip";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
 import BelleAvatar from "@/components/BelleAvatar";
+import BelleCelebrationAvatar from "@/components/BelleCelebrationAvatar";
 import TulipAvatar from "@/components/TulipAvatar";
 import BottomNav from "@/components/BottomNav";
 import WeatherForecast from "@/components/WeatherForecast";
 import { CATEGORIES } from "@/lib/categories";
-import { allDoneEncouragement, pickEncouragement } from "@/lib/encouragements";
+import { allDoneEncouragement, ALL_DONE_WITH_TODAYS_LIST, pickAllDoneCompliment, pickEncouragement } from "@/lib/encouragements";
+import { isTodoDueToday } from "@/lib/dates";
 import { hapticComplete } from "@/lib/haptics";
 import {
   allEssentialsDoneToday,
@@ -26,6 +28,10 @@ import {
 } from "@/lib/essentials";
 import { migrateTodos, reorderTodos, sortByDueDate } from "@/lib/migrate";
 import { mergeSyncData } from "@/lib/sync-merge";
+import {
+  remainingTodayRegularCount,
+  todayRegularTodos,
+} from "@/lib/today-scope";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import {
   hydrateFromCloud,
@@ -71,6 +77,7 @@ export default function TodoApp() {
     message: string;
     emoji: string;
   } | null>(null);
+  const [allDoneCompliment, setAllDoneCompliment] = useState<string | null>(null);
   const lastToggleRef = useRef<{
     id: string;
     expectedCompleted: boolean;
@@ -194,16 +201,32 @@ export default function TodoApp() {
   const completedCount = regularTodos.filter((t) => t.completed).length;
   const ritualCount = pendingRituals.length;
 
+  const todayTodos = useMemo(
+    () => todayRegularTodos(regularTodos),
+    [regularTodos],
+  );
+  const todayActiveCount = todayTodos.filter(
+    (t) => !t.completed || completingId === t.id,
+  ).length;
+  const allDoneForToday =
+    todayTodos.length > 0 && todayActiveCount === 0;
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (allDoneForToday) {
+      setAllDoneCompliment((current) => current ?? pickAllDoneCompliment());
+    } else {
+      setAllDoneCompliment(null);
+    }
+  }, [hydrated, allDoneForToday]);
+
   const dismissCelebration = useCallback(() => setCelebration(null), []);
   const dismissCompletionFlash = useCallback(() => setCompletionFlash(null), []);
 
-  function remainingRegularCount(list: Todo[]) {
-    return list.filter(isRegularTodo).filter((t) => !t.completed).length;
-  }
-
-  function celebrate(wasLastOne: boolean) {
-    const picked = wasLastOne ? allDoneEncouragement() : pickEncouragement();
-    if (wasLastOne) {
+  function celebrate(wasAllDoneForToday: boolean) {
+    const picked = wasAllDoneForToday ? allDoneEncouragement() : pickEncouragement();
+    if (wasAllDoneForToday) {
+      setAllDoneCompliment(picked.message);
       setCelebration({
         ...picked,
         seed: Date.now(),
@@ -274,8 +297,9 @@ export default function TodoApp() {
     setCompletingId(id);
     lastToggleRef.current = { id, expectedCompleted: true, at: Date.now() };
     hapticComplete();
-    const wasLastOne =
-      remainingRegularCount(
+    const wasAllDoneForToday =
+      isTodoDueToday(target) &&
+      remainingTodayRegularCount(
         todos.map((t) => (t.id === id ? { ...t, completed: true } : t)),
       ) === 0;
 
@@ -284,13 +308,13 @@ export default function TodoApp() {
         prev.map((t) => (t.id === id ? { ...t, completed: true } : t)),
       );
 
-      if (!wasLastOne) {
+      if (!wasAllDoneForToday) {
         startTransition(() => celebrate(false));
       }
 
       window.setTimeout(() => {
         setCompletingId(null);
-        if (wasLastOne) {
+        if (wasAllDoneForToday) {
           startTransition(() => celebrate(true));
         }
       }, COMPLETE_FLY_MS);
@@ -358,9 +382,13 @@ export default function TodoApp() {
                 🐻
               </span>
               <p className="text-xs font-semibold text-foreground/75 sm:text-sm">
-                {activeCount === 0
-                  ? "All tucked into their boxes!"
-                  : `${activeCount} bit${activeCount === 1 ? "" : "s"} left`}
+                {allDoneForToday
+                  ? ALL_DONE_WITH_TODAYS_LIST
+                  : todayTodos.length > 0
+                    ? `${todayActiveCount} for today left`
+                    : activeCount === 0
+                      ? "All tucked into their boxes!"
+                      : `${activeCount} bit${activeCount === 1 ? "" : "s"} left`}
               </p>
             </div>
 
@@ -381,7 +409,7 @@ export default function TodoApp() {
           </div>
         </header>
 
-        <div className="mb-4 sm:mb-5">
+        <div className="mb-3 sm:mb-4">
           <WeatherForecast />
         </div>
 
@@ -453,17 +481,22 @@ export default function TodoApp() {
               {celebration && statusFilter === "active" ? (
                 <CelebrationToast
                   message={celebration.message}
-                  emoji={celebration.emoji}
                   onDone={dismissCelebration}
                 />
               ) : (
                 <>
-                  <p className="animate-float-gentle text-3xl">🌷</p>
+                  {statusFilter === "active" ? (
+                    <div className="flex justify-center">
+                      <BelleCelebrationAvatar size={100} />
+                    </div>
+                  ) : (
+                    <p className="animate-float-gentle text-3xl">🌷</p>
+                  )}
                   <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">
                     {statusFilter === "completed"
                       ? "Nothing checked off yet — you've got this!"
                       : statusFilter === "active"
-                        ? "All caught up! Time for a tiny celebration."
+                        ? allDoneCompliment ?? ALL_DONE_WITH_TODAYS_LIST
                         : "Your box is empty. Add something sweet above."}
                   </p>
                 </>
@@ -471,6 +504,14 @@ export default function TodoApp() {
             </div>
           ) : (
             <div className="relative pb-2">
+              {allDoneForToday && statusFilter === "active" && (
+                <div className="mb-3 flex flex-col items-center rounded-2xl bg-background/70 px-3 py-4 text-center">
+                  <BelleCelebrationAvatar size={72} />
+                  <p className="mt-2 text-sm font-semibold text-foreground/80">
+                    {allDoneCompliment ?? ALL_DONE_WITH_TODAYS_LIST}
+                  </p>
+                </div>
+              )}
               <SortableTodoList
                 todos={filteredTodos}
                 completingId={completingId}
@@ -504,9 +545,11 @@ export default function TodoApp() {
           {completedCount > 0 && (
             <div className="mt-4 flex items-center justify-between gap-3 border-t border-accent-soft/40 pt-3.5 text-sm sm:mt-5 sm:pt-4">
               <span className="min-w-0 text-xs text-foreground/60 sm:text-sm">
-                {activeCount === 0
-                  ? "All done — you're amazing! 🎀"
-                  : `${activeCount} left to go`}
+                {allDoneForToday
+                  ? `${ALL_DONE_WITH_TODAYS_LIST} ✓`
+                  : activeCount === 0
+                    ? "All done — you're amazing! 🎀"
+                    : `${activeCount} left to go`}
               </span>
               <button
                 type="button"

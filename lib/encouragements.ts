@@ -9,15 +9,32 @@ const MESSAGES = [
   { message: "So satisfying, Belle!", emoji: "🎉" },
 ];
 
-const ALL_DONE = {
-  message: "Everything's done! Wow, you did so well, Belle!",
-  emoji: "🏆",
-};
+export const ALL_DONE_WITH_TODAYS_LIST = "All done with today's list!";
+
+const ALL_DONE_FOR_TODAY_COMPLIMENTS = [
+  "All done with today's list! 🎀",
+  "All done with today's list, Belle! ✨",
+  "Today's list is all tucked away! 🌷",
+  "You finished today's list — so proud! 🫶",
+  "That's today's list wrapped, sweetie! 🏆",
+  "Every today task done — wow! 💫",
+  "Today's list feels complete! 🌟",
+  "You cleared today's list beautifully! 🎉",
+];
+
+export function pickAllDoneCompliment() {
+  return ALL_DONE_FOR_TODAY_COMPLIMENTS[
+    Math.floor(Math.random() * ALL_DONE_FOR_TODAY_COMPLIMENTS.length)
+  ];
+}
 
 export function pickEncouragement() {
   return MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
 }
 
 export function allDoneEncouragement() {
-  return ALL_DONE;
+  return {
+    message: pickAllDoneCompliment(),
+    emoji: "🏆",
+  };
 }

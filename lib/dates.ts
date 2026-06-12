@@ -2,6 +2,13 @@ export function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
 
+export function isTodoDueToday(
+  todo: { dueDate: string | null },
+  today = todayString(),
+) {
+  return todo.dueDate === today;
+}
+
 export function dayBefore(iso: string): string {
   const [year, month, day] = iso.split("-").map(Number);
   const date = new Date(year, month - 1, day - 1);

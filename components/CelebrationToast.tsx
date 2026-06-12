@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
+import BelleCelebrationAvatar from "@/components/BelleCelebrationAvatar";
 
 const TOAST_MS = 2200;
 
 type CelebrationToastProps = {
   message: string;
-  emoji: string;
+  emoji?: string;
   onDone: () => void;
 };
 
 export default function CelebrationToast({
   message,
-  emoji,
   onDone,
 }: CelebrationToastProps) {
   useEffect(() => {
@@ -22,15 +22,13 @@ export default function CelebrationToast({
 
   return (
     <div
-      className="flex w-full justify-center px-2"
+      className="flex w-full justify-center px-2 py-4"
       role="status"
       aria-live="polite"
     >
-      <div className="animate-celebration-toast-long flex max-w-sm items-center gap-3 rounded-2xl border-2 border-accent-soft/50 bg-card/95 px-4 py-3 shadow-[0_12px_32px_var(--shadow)]">
-        <span className="animate-celebration-once shrink-0 text-2xl">
-          {emoji}
-        </span>
-        <p className="text-sm font-bold leading-snug text-foreground">
+      <div className="animate-celebration-pop flex max-w-md flex-col items-center gap-3 rounded-[2rem] border-2 border-accent-soft/50 bg-card/95 px-8 py-6 text-center shadow-[0_24px_60px_var(--shadow)] backdrop-blur-md sm:px-10 sm:py-7">
+        <BelleCelebrationAvatar size={104} />
+        <p className="text-base font-bold leading-snug text-foreground sm:text-lg">
           {message}
         </p>
       </div>
