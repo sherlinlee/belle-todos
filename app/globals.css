@@ -65,6 +65,27 @@ body {
   display: none;
 }
 
+.weather-day-row {
+  display: block;
+  margin: 0;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weather-day-emoji {
+  display: inline;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.weather-day-temps {
+  display: inline;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 .touch-target {
   min-height: 2.75rem;
   min-width: 2.75rem;

@@ -81,15 +81,15 @@ function DayCard({ day }: { day: WeatherDay }) {
       <p className="text-center text-[8px] font-bold uppercase tracking-wide text-[#7A4444]">
         {day.label}
       </p>
-      <div className="mx-auto grid w-fit grid-flow-col items-center gap-x-1.5 gap-y-0">
-        <span className="text-base leading-none" aria-hidden>
+      <p className="weather-day-row">
+        <span className="weather-day-emoji" aria-hidden>
           {day.emoji}
         </span>
-        <span className="whitespace-nowrap leading-none">
+        <span className="weather-day-temps">
           <span className="text-[11px] font-medium text-[#3D1515]">{day.high}°</span>
           <span className="text-[10px] text-[#8A5555]"> / {day.low}°</span>
         </span>
-      </div>
+      </p>
       <p className="truncate text-center text-[8px] font-semibold text-[#7A4444]">
         {day.description}
       </p>
