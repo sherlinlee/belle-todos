@@ -7,5 +7,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Deployment
 
 - **Belle production:** https://belle-todos.vercel.app/ (`npm run deploy:belle`, project `belle-todos`)
-- **Rod production:** https://rod-todos.vercel.app/ (`npm run deploy:rod`, project `rod-todos`)
+- **Rod production:** https://rod-todos.vercel.app/ (`npm run deploy:rod`, project `rod-todos`, env `NEXT_PUBLIC_SITE_OWNER=rod`)
 - See `.cursor/rules/deployment.mdc` for full deploy workflow.

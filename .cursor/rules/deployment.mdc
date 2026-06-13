@@ -5,33 +5,38 @@ alwaysApply: true
 
 # Deployment
 
-## Belle (this repo default)
+These are **two separate Vercel projects** from the same repo. Never cross-alias domains.
+
+## Belle
 
 - **Production URL:** https://belle-todos.vercel.app/
 - **Vercel project:** `belle-todos`
-- **Deploy command:**
+- **Env:** `NEXT_PUBLIC_SITE_OWNER=belle` (or unset)
+- **Deploy:**
   ```bash
-  npx vercel deploy --prod --yes
+  npm run deploy:belle
   ```
-- After deploy, confirm the alias points at production:
+- After deploy, confirm alias:
   ```bash
   npx vercel alias set <deployment-url> belle-todos.vercel.app
   ```
-- Do **not** use `to-dos-kappa-steel.vercel.app` or other legacy aliases as Belle's production URL.
+- Do **not** use `to-dos-kappa-steel.vercel.app`.
 
-## Rod (same codebase, separate Vercel project)
+## Rod
 
 - **Production URL:** https://rod-todos.vercel.app/
 - **Vercel project:** `rod-todos`
-- **Deploy command:**
+- **Env:** `NEXT_PUBLIC_SITE_OWNER=rod` (required on the rod-todos project)
+- **Deploy:**
   ```bash
-  npx vercel deploy --prod --yes --project rod-todos
+  npm run deploy:rod
   ```
+- Rod must **never** be aliased to `belle-todos.vercel.app`.
 
 ## Deploy both
 
 ```bash
-npx vercel deploy --prod --yes && npx vercel deploy --prod --yes --project rod-todos
+npm run deploy:all
 ```
 
-Both projects share this GitHub repo (`main`). Pushing to `main` may auto-deploy, but always verify Belle lands on **belle-todos.vercel.app**.
+Do **not** put Belle-only aliases in shared repo config (`vercel.json`). Belle's alias is set on the `belle-todos` project only.

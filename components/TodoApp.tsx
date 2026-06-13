@@ -8,7 +8,7 @@ import ConfettiBurst from "@/components/ConfettiBurst";
 import EssentialsStrip from "@/components/EssentialsStrip";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
-import BelleAvatar from "@/components/BelleAvatar";
+import SiteAvatar from "@/components/SiteAvatar";
 import BelleCelebrationAvatar from "@/components/BelleCelebrationAvatar";
 import TulipAvatar from "@/components/TulipAvatar";
 import BottomNav from "@/components/BottomNav";
@@ -32,6 +32,7 @@ import {
   remainingTodayRegularCount,
   todayRegularTodos,
 } from "@/lib/today-scope";
+import { formatSiteDecor, getSiteConfig } from "@/lib/site";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
 import {
   hydrateFromCloud,
@@ -353,6 +354,8 @@ export default function TodoApp() {
       { key: "all", label: "All", count: regularTodos.length },
     ];
 
+  const site = getSiteConfig();
+
   return (
     <div className="safe-px safe-pt relative min-h-dvh overflow-x-hidden pb-24">
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -366,14 +369,14 @@ export default function TodoApp() {
       <main className="relative mx-auto w-full max-w-lg pb-2 pt-2 sm:pt-4">
         <header className="mb-5 text-center sm:mb-8">
           <p className="mb-1.5 text-xs font-semibold tracking-wide text-accent sm:mb-2 sm:text-sm">
-            ✿ my cosy corner ✿
+            {formatSiteDecor(site.homeTagline, site.homeAvatarEmoji)}
           </p>
           <h1 className="text-[2rem] font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
             to-do(s)
           </h1>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-sm text-foreground/70 sm:mt-3 sm:text-base">
-            <span>one thing at a time. you got it, belle</span>
-            <BelleAvatar size={34} />
+            <span>{site.homeSubtitle}</span>
+            <SiteAvatar size={34} />
           </p>
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:mt-5">

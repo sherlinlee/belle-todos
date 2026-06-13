@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import BelleAvatar from "@/components/BelleAvatar";
+import SiteAvatar from "@/components/SiteAvatar";
 import BottomNav from "@/components/BottomNav";
 import CrossIcon from "@/components/CrossIcon";
 import JournalArchive from "@/components/JournalArchive";
@@ -284,7 +284,7 @@ export default function JournalApp() {
           </h1>
           <p className="mt-1.5 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-foreground/70">
             <span>{formatJournalDate(today)}</span>
-            <BelleAvatar size={28} />
+            <SiteAvatar size={28} />
           </p>
         </header>
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
 import SessionGuard from "@/components/SessionGuard";
+import { getSiteConfig } from "@/lib/site";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -9,9 +10,11 @@ const fredoka = Fredoka({
   weight: ["400", "500", "600", "700"],
 });
 
+const site = getSiteConfig();
+
 export const metadata: Metadata = {
-  title: "belle's to-do(s) ✿",
-  description: "A cute little to-do list, just for Belle",
+  title: site.title,
+  description: site.description,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/icon-512.png", type: "image/png", sizes: "512x512" }],
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "belle's to-do(s)",
+    title: site.appName,
   },
 };
 
@@ -28,7 +31,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f5eef1",
+  themeColor: site.themeColor,
 };
 
 export default function RootLayout({

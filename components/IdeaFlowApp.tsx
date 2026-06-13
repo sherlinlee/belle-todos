@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useCloudRefresh } from "@/hooks/useCloudRefresh";
-import BelleAvatar from "@/components/BelleAvatar";
+import SiteAvatar from "@/components/SiteAvatar";
 import BottomNav from "@/components/BottomNav";
 import MicButton from "@/components/MicButton";
 import { type Idea, loadIdeas, saveIdeas } from "@/lib/ideas";
@@ -111,7 +111,7 @@ export default function IdeaFlowApp() {
           </h1>
           <p className="mt-1.5 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-foreground/70">
             <span>whisper it, type it, catch the spark</span>
-            <BelleAvatar size={28} />
+            <SiteAvatar size={28} />
           </p>
         </header>
 
