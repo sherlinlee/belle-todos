@@ -42,6 +42,9 @@ export default function JournalApp() {
   const isEditingRef = useRef(false);
   const isFocusedRef = useRef(false);
   const saveTimerRef = useRef<number | null>(null);
+  const flushDraftRef = useRef<(date?: string, text?: string) => JournalEntry[]>(
+    () => [],
+  );
 
   const verse = useMemo(() => verseForDate(today), [today]);
   const archive = useMemo(() => groupJournalArchive(entries), [entries]);
@@ -162,6 +165,17 @@ export default function JournalApp() {
     return next;
   }
 
+  flushDraftRef.current = flushDraft;
+
+  useEffect(() => {
+    function handlePageHide() {
+      flushDraftRef.current();
+    }
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, []);
+
   function selectWritingDate(date: string) {
     if (!date || date > today) return;
     const nextEntries = flushDraft();
@@ -213,7 +227,17 @@ export default function JournalApp() {
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = null;
     }
-    updateReflection(draftText);
+
+    let textToSave = draftText;
+    if (liveTranscript) {
+      textToSave = draftText
+        ? `${draftText}${draftText.endsWith(" ") ? "" : " "}${liveTranscript}`
+        : liveTranscript;
+      setLiveTranscript("");
+      setDraftText(textToSave);
+    }
+
+    updateReflection(textToSave);
     isEditingRef.current = false;
   }
 
@@ -235,11 +259,11 @@ export default function JournalApp() {
 
   function editFromArchive(date: string) {
     selectWritingDate(date);
-    setShowDatePicker(true);
+    setShowDatePicker(date !== today);
     window.requestAnimationFrame(() => {
-      document
-        .getElementById("journal-reflection")
-        ?.focus({ preventScroll: true });
+      const textarea = document.getElementById("journal-reflection");
+      textarea?.scrollIntoView({ behavior: "smooth", block: "center" });
+      textarea?.focus({ preventScroll: true });
     });
   }
 
@@ -383,6 +407,8 @@ export default function JournalApp() {
           archive={archive}
           totalSaved={totalSaved}
           today={today}
+          editingDate={writingDate}
+          editingText={draftText}
           onSelectDate={editFromArchive}
         />
       </main>

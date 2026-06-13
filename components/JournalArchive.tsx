@@ -8,6 +8,8 @@ type JournalArchiveProps = {
   archive: JournalYearGroup[];
   totalSaved: number;
   today: string;
+  editingDate?: string;
+  editingText?: string;
   onSelectDate?: (date: string) => void;
 };
 
@@ -18,6 +20,8 @@ export default function JournalArchive({
   archive,
   totalSaved,
   today,
+  editingDate,
+  editingText,
   onSelectDate,
 }: JournalArchiveProps) {
   const [open, setOpen] = useState(totalSaved > 0);
@@ -150,6 +154,10 @@ export default function JournalArchive({
                                     const entryOpen = expandedEntries.has(
                                       entry.date,
                                     );
+                                    const displayText =
+                                      entry.date === editingDate
+                                        ? (editingText ?? entry.text)
+                                        : entry.text;
 
                                     return (
                                       <li
@@ -177,7 +185,7 @@ export default function JournalArchive({
                                           <div className="px-2.5 pb-2.5 pt-1">
                                             <div className="max-h-56 overflow-y-auto rounded-lg border border-accent-soft/25 bg-card/90 px-2.5 py-2">
                                               <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/85">
-                                                {entry.text}
+                                                {displayText}
                                               </p>
                                             </div>
                                             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -212,7 +220,7 @@ export default function JournalArchive({
                                             aria-expanded={false}
                                           >
                                             <p className="line-clamp-2 whitespace-pre-wrap break-words text-sm leading-snug text-foreground/70">
-                                              {entry.text}
+                                              {displayText}
                                             </p>
                                             <span className={`mt-2 ${archivePillClass}`}>
                                               Tap for more

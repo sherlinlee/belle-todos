@@ -72,9 +72,18 @@ function writeSyncMeta(meta: SyncMeta) {
   localStorage.setItem(SYNC_META_KEY, JSON.stringify(meta));
 }
 
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+  window.location.href = "/login";
+}
+
 export async function fetchCloudSync(): Promise<BelleSyncData | null> {
   try {
     const res = await fetch("/api/sync", { cache: "no-store" });
+    if (res.status === 401) {
+      redirectToLogin();
+      return null;
+    }
     if (!res.ok) return null;
     const json = (await res.json()) as {
       ok: boolean;
@@ -99,6 +108,10 @@ export async function pushCloudSync(data: BelleSyncData): Promise<boolean> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (res.status === 401) {
+      redirectToLogin();
+      return false;
+    }
     if (!res.ok) return false;
     writeSyncMeta({ updatedAt: data.updatedAt });
     return true;

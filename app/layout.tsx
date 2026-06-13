@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
+import SessionGuard from "@/components/SessionGuard";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${fredoka.variable} h-full antialiased`}>
       <body className="min-h-dvh overflow-x-hidden flex flex-col">
+        <SessionGuard />
         {children}
       </body>
     </html>
