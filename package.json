@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "icons": "node scripts/generate-png-icons.mjs",
-    "deploy:belle": "vercel deploy --prod --yes",
-    "deploy:rod": "vercel deploy --prod --yes --project rod-todos",
+    "deploy:belle": "npx vercel deploy --prod --yes",
+    "deploy:rod": "npx vercel deploy --prod --yes --project rod-todos",
     "deploy:all": "npm run deploy:belle && npm run deploy:rod"
   },
   "dependencies": {
