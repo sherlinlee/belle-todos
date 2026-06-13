@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "icons": "node scripts/generate-png-icons.mjs"
+    "icons": "node scripts/generate-png-icons.mjs",
+    "deploy:belle": "vercel deploy --prod --yes",
+    "deploy:rod": "vercel deploy --prod --yes --project rod-todos",
+    "deploy:all": "npm run deploy:belle && npm run deploy:rod"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

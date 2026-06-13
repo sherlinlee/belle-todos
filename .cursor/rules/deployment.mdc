@@ -1,0 +1,37 @@
+---
+description: Vercel deployment URLs and commands for Belle and Rod
+alwaysApply: true
+---
+
+# Deployment
+
+## Belle (this repo default)
+
+- **Production URL:** https://belle-todos.vercel.app/
+- **Vercel project:** `belle-todos`
+- **Deploy command:**
+  ```bash
+  npx vercel deploy --prod --yes
+  ```
+- After deploy, confirm the alias points at production:
+  ```bash
+  npx vercel alias set <deployment-url> belle-todos.vercel.app
+  ```
+- Do **not** use `to-dos-kappa-steel.vercel.app` or other legacy aliases as Belle's production URL.
+
+## Rod (same codebase, separate Vercel project)
+
+- **Production URL:** https://rod-todos.vercel.app/
+- **Vercel project:** `rod-todos`
+- **Deploy command:**
+  ```bash
+  npx vercel deploy --prod --yes --project rod-todos
+  ```
+
+## Deploy both
+
+```bash
+npx vercel deploy --prod --yes && npx vercel deploy --prod --yes --project rod-todos
+```
+
+Both projects share this GitHub repo (`main`). Pushing to `main` may auto-deploy, but always verify Belle lands on **belle-todos.vercel.app**.
