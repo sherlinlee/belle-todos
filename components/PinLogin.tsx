@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import BelleAvatar from "@/components/BelleAvatar";
+import { markPinVerified } from "@/lib/session-client";
 
 export default function PinLogin() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState(false);
@@ -78,9 +78,9 @@ export default function PinLogin() {
         return;
       }
 
+      markPinVerified();
       const from = searchParams.get("from") || "/";
-      router.replace(from);
-      router.refresh();
+      window.location.assign(from);
     } catch {
       setDigits(["", "", "", "", "", ""]);
       setError(true);
