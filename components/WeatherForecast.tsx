@@ -33,44 +33,24 @@ function HourlyRain({ hours }: { hours: WeatherHour[] }) {
 
   return (
     <div className="scroll-chips mt-1 flex gap-0.5 overflow-x-auto pb-0.5">
-      {timeline.map((hour) => {
-        const highProb = hour.probability >= 75;
-
-        return (
-          <div
-            key={hour.time}
-            className={`min-w-[2.55rem] shrink-0 rounded-[6px] px-1 py-0.5 text-center ${
-              highProb ? "bg-[#F5EFED]" : "bg-[#EDE5E0] opacity-60"
-            }`}
-            title={`${hour.description}, ${hour.probability}% rain, ${hour.precipitation.toFixed(1)}mm`}
-          >
-            <p
-              className={`text-[8px] font-bold uppercase tracking-wide ${
-                highProb ? "text-[#8A5555]" : "text-[#A08078]"
-              }`}
-            >
-              {hour.label}
-            </p>
-            <p className="text-xs leading-none">{hour.emoji}</p>
-            <p
-              className={`mt-px text-[8px] ${
-                highProb
-                  ? "font-medium text-[#3D1515]"
-                  : "font-semibold text-[#A08078]"
-              }`}
-            >
-              {hour.probability}%
-            </p>
-            <p
-              className={`text-[8px] font-semibold leading-tight ${
-                highProb ? "text-[#A07070]" : "text-[#A08078]"
-              }`}
-            >
-              {hour.precipitation.toFixed(1)}mm
-            </p>
-          </div>
-        );
-      })}
+      {timeline.map((hour) => (
+        <div
+          key={hour.time}
+          className="min-w-[2.55rem] shrink-0 rounded-[6px] bg-[#F5EFED] px-1 py-0.5 text-center"
+          title={`${hour.description}, ${hour.probability}% rain, ${hour.precipitation.toFixed(1)}mm`}
+        >
+          <p className="text-[8px] font-bold uppercase tracking-wide text-[#8A5555]">
+            {hour.label}
+          </p>
+          <p className="text-xs leading-none">{hour.emoji}</p>
+          <p className="mt-px text-[8px] font-medium text-[#3D1515]">
+            {hour.probability}%
+          </p>
+          <p className="text-[8px] font-semibold leading-tight text-[#A07070]">
+            {hour.precipitation.toFixed(1)}mm
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
