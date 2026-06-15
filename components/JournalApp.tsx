@@ -25,6 +25,7 @@ import {
   scheduleCloudPush,
 } from "@/lib/sync-client";
 import { formatJournalDate, verseForDate } from "@/lib/verses";
+import { formatSiteDecor, getSiteConfig } from "@/lib/site";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -47,6 +48,7 @@ export default function JournalApp() {
   );
 
   const verse = useMemo(() => verseForDate(today), [today]);
+  const site = getSiteConfig();
   const archive = useMemo(() => groupJournalArchive(entries), [entries]);
   const totalSaved = useMemo(() => savedJournalCount(entries), [entries]);
 
@@ -277,7 +279,7 @@ export default function JournalApp() {
       <main className="relative mx-auto w-full max-w-lg pt-2 sm:pt-4">
         <header className="mb-4 text-center sm:mb-6">
           <p className="mb-1 text-xs font-semibold tracking-wide text-accent sm:text-sm">
-            ✿ pause + breathe ✿
+            {formatSiteDecor(site.journalTagline, site.homeAvatarEmoji)}
           </p>
           <h1 className="text-[1.75rem] font-extrabold leading-tight text-foreground sm:text-4xl">
             journal
@@ -375,7 +377,7 @@ export default function JournalApp() {
               <div className="mt-2 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold text-foreground/35">
                   {saveStatus === "saved" && (
-                    <span>in your journal below ✿</span>
+                    <span>{site.journalSavedHint}</span>
                   )}
                   {isWritingToday && !showDatePicker && (
                     <>

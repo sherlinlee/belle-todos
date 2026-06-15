@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fredoka.variable} h-full antialiased`}>
+    <html lang="en" data-site={site.owner} className={`${fredoka.variable} h-full antialiased`}>
       <body className="min-h-dvh overflow-x-hidden flex flex-col">
         <SessionGuard />
         {children}

@@ -6,6 +6,7 @@ import SiteAvatar from "@/components/SiteAvatar";
 import BottomNav from "@/components/BottomNav";
 import MicButton from "@/components/MicButton";
 import { type Idea, loadIdeas, saveIdeas } from "@/lib/ideas";
+import { formatSiteDecor, getSiteConfig } from "@/lib/site";
 import {
   hydrateFromCloud,
   readLocalJournal,
@@ -94,6 +95,8 @@ export default function IdeaFlowApp() {
     setIdeas((prev) => prev.filter((i) => i.id !== id));
   }
 
+  const site = getSiteConfig();
+
   return (
     <div className="safe-px safe-pt relative min-h-dvh overflow-x-hidden pb-24">
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -104,7 +107,7 @@ export default function IdeaFlowApp() {
       <main className="relative mx-auto w-full max-w-lg pt-2 sm:pt-4">
         <header className="mb-4 text-center sm:mb-6">
           <p className="mb-1 text-xs font-semibold tracking-wide text-accent sm:text-sm">
-            ✿ let it spill out ✿
+            {formatSiteDecor(site.ideasTagline, site.homeAvatarEmoji)}
           </p>
           <h1 className="text-[1.75rem] font-extrabold leading-tight text-foreground sm:text-4xl">
             idea flow

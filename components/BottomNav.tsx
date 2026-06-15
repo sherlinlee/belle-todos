@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const links = [
-  { href: "/", label: "to-do(s)", emoji: "✿" },
-  { href: "/ideas", label: "ideas", emoji: "💭" },
-  { href: "/journal", label: "journal", emoji: "📖" },
-];
+import { getSiteConfig } from "@/lib/site";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const site = getSiteConfig();
+
+  const links = [
+    { href: "/", label: "to-do(s)", emoji: site.navTodoEmoji },
+    { href: "/ideas", label: "ideas", emoji: "💭" },
+    { href: "/journal", label: "journal", emoji: "📖" },
+  ];
 
   return (
     <nav className="safe-pb fixed inset-x-0 bottom-0 z-40 border-t border-accent-soft/40 bg-card/95 px-3 pt-2 backdrop-blur-md">

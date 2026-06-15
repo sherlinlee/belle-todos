@@ -11,6 +11,14 @@ export type SiteConfig = {
   homeSubtitle: string;
   homeAvatar: "belle" | "emoji";
   homeAvatarEmoji: string;
+  navTodoEmoji: string;
+  journalTagline: string;
+  ideasTagline: string;
+  journalSavedHint: string;
+  emptyCompletedEmoji: string;
+  allDoneFooter: string;
+  celebrationEmoji: string;
+  syncBlobName: string;
   themeColor: string;
   manifestBackground: string;
 };
@@ -26,6 +34,14 @@ const belle: SiteConfig = {
   homeSubtitle: "one thing at a time. you got it, belle",
   homeAvatar: "belle",
   homeAvatarEmoji: "✿",
+  navTodoEmoji: "✿",
+  journalTagline: "pause + breathe",
+  ideasTagline: "let it spill out",
+  journalSavedHint: "in your journal below ✿",
+  emptyCompletedEmoji: "🌷",
+  allDoneFooter: "All done — you're amazing! 🎀",
+  celebrationEmoji: "🏆",
+  syncBlobName: "belle-sync.json",
   themeColor: "#f5eef1",
   manifestBackground: "#f5a0bd",
 };
@@ -41,8 +57,16 @@ const rod: SiteConfig = {
   homeSubtitle: "one thing at a time. you got this, rod",
   homeAvatar: "emoji",
   homeAvatarEmoji: "⚡",
-  themeColor: "#f5eef1",
-  manifestBackground: "#f5a0bd",
+  navTodoEmoji: "⚡",
+  journalTagline: "pause + reset",
+  ideasTagline: "let it spill out",
+  journalSavedHint: "in your journal below ⚡",
+  emptyCompletedEmoji: "⚡",
+  allDoneFooter: "All done — nailed it! ⚡",
+  celebrationEmoji: "🏆",
+  syncBlobName: "rod-sync.json",
+  themeColor: "#eef1f5",
+  manifestBackground: "#6b8cae",
 };
 
 export function getSiteOwner(): SiteOwner {

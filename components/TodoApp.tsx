@@ -9,7 +9,7 @@ import EssentialsStrip from "@/components/EssentialsStrip";
 import SortableTodoList from "@/components/SortableTodoList";
 import type { TodoUpdates } from "@/components/TodoItem";
 import SiteAvatar from "@/components/SiteAvatar";
-import BelleCelebrationAvatar from "@/components/BelleCelebrationAvatar";
+import CelebrationAvatar from "@/components/CelebrationAvatar";
 import TulipAvatar from "@/components/TulipAvatar";
 import BottomNav from "@/components/BottomNav";
 import WeatherForecast from "@/components/WeatherForecast";
@@ -490,10 +490,10 @@ export default function TodoApp() {
                 <>
                   {statusFilter === "active" ? (
                     <div className="flex justify-center">
-                      <BelleCelebrationAvatar size={100} />
+                      <CelebrationAvatar size={100} />
                     </div>
                   ) : (
-                    <p className="animate-float-gentle text-3xl">🌷</p>
+                    <p className="animate-float-gentle text-3xl">{site.emptyCompletedEmoji}</p>
                   )}
                   <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground/80 sm:text-base">
                     {statusFilter === "completed"
@@ -509,7 +509,7 @@ export default function TodoApp() {
             <div className="relative pb-2">
               {allDoneForToday && statusFilter === "active" && (
                 <div className="mb-3 flex flex-col items-center rounded-2xl bg-background/70 px-3 py-4 text-center">
-                  <BelleCelebrationAvatar size={72} />
+                  <CelebrationAvatar size={72} />
                   <p className="mt-2 text-sm font-semibold text-foreground/80">
                     {allDoneCompliment ?? ALL_DONE_WITH_TODAYS_LIST}
                   </p>
@@ -551,7 +551,7 @@ export default function TodoApp() {
                 {allDoneForToday
                   ? `${ALL_DONE_WITH_TODAYS_LIST} ✓`
                   : activeCount === 0
-                    ? "All done — you're amazing! 🎀"
+                    ? site.allDoneFooter
                     : `${activeCount} left to go`}
               </span>
               <button
